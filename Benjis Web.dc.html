@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:#0b0b0b}
+body{font-family:'Archivo',sans-serif;color:#f2efec}
+a{color:#f2efec;text-decoration:none}
+a:hover{color:#f93a2f}
+::selection{background:#f93a2f;color:#0b0b0b}
+@keyframes bIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes sheen{from{transform:translateX(-55%) }to{transform:translateX(55%)}}
+@keyframes float1{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-16px) rotate(4deg)}}
+@keyframes float2{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(12px) rotate(-5deg)}}
+@keyframes float3{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div data-screen-label="Benji$" style="background:#0b0b0b;color:#f2efec;min-height:100vh;font-family:'Archivo',sans-serif;letter-spacing:.01em">
+
+<sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+  <div style="position:fixed;inset:0;z-index:200;background:#0b0b0b;display:flex;align-items:center;justify-content:center;opacity:{{ loaderOpacity }};transition:opacity .55s ease;pointer-events:none">
+    <img src="assets/logo-b.png" alt="B" style="height:180px;animation:bIn .7s cubic-bezier(.2,.8,.2,1) both">
+  </div>
+</sc-if>
+
+<div style="position:fixed;inset:0;z-index:150;background:#0b0b0b;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:{{ transOpacity }};transition:opacity .32s ease">
+  <img src="assets/logo-b.png" alt="" style="height:110px">
+</div>
+
+<sc-if value="{{ showBanner }}" hint-placeholder-val="{{ true }}">
+  <div style="background:{{ accent }};overflow:hidden;height:34px;position:relative;box-shadow:0 0 18px {{ accent }},0 0 40px {{ accent }},inset 0 0 14px rgba(255,255,255,.15)">
+    <div ref="{{ bannerRef }}" style="display:flex;align-items:center;height:100%;white-space:nowrap;will-change:transform">
+      <span style="display:inline-flex;gap:44px;padding:0 22px;font-size:10px;font-weight:600;letter-spacing:.32em;text-transform:uppercase;color:#fff;text-shadow:0 0 6px rgba(255,255,255,.9),0 0 18px {{ accent }},0 0 40px {{ accent }}">
+        <span>Envíos a todo el país</span>
+        <span style="opacity:.5">✦</span>
+        <span>Drop 01</span>
+        <span style="opacity:.5">✦</span>
+        <span>Montevideo</span>
+        <span style="opacity:.5">✦</span>
+        <span>Envíos a todo el país</span>
+        <span style="opacity:.5">✦</span>
+        <span>Drop 01</span>
+        <span style="opacity:.5">✦</span>
+        <span>Montevideo</span>
+        <span style="opacity:.5">✦</span>
+        <span>Envíos a todo el país</span>
+        <span style="opacity:.5">✦</span>
+        <span>Drop 01</span>
+        <span style="opacity:.5">✦</span>
+        <span>Montevideo</span>
+        <span style="opacity:.5">✦</span>
+      </span>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ m }}" hint-placeholder-val="{{ false }}">
+  <header style="position:sticky;top:0;z-index:80;background:rgba(11,11,11,.92);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #1c1c1c">
+    <a href="#" onClick="{{ toggleMenu }}" style="font-size:18px;line-height:1;padding:4px">☰</a>
+    <img src="assets/logo-wordmark.png" alt="Benji$" onClick="{{ goHome }}" style="height:26px;cursor:pointer">
+    <a href="#" onClick="{{ openCart }}" style="font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase" style-hover="color:#f93a2f">Bag ({{ cartCount }})</a>
+  </header>
+  <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:85;background:rgba(0,0,0,.7)" onClick="{{ closeMenu }}"></div>
+    <nav style="position:fixed;top:0;left:0;bottom:0;width:260px;z-index:86;background:#0f0f0f;padding:70px 28px 40px;display:flex;flex-direction:column;gap:32px;font-size:14px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;animation:fadeUp .25s ease both">
+      <a href="#" onClick="{{ closeMenu }}" style="position:absolute;top:18px;right:18px;font-size:12px;color:#8a8782" style-hover="color:#f93a2f">✕</a>
+      <a href="#" onClick="{{ goShop }}" style="color:{{ navShopColor }}" style-hover="color:#f93a2f">Shop</a>
+      <a href="#" onClick="{{ goArchive }}" style="color:{{ navArchiveColor }}" style-hover="color:#f93a2f">Archivos</a>
+      <a href="#" onClick="{{ goCustom }}" style="color:{{ navCustomColor }}" style-hover="color:#f93a2f">Custom</a>
+      <a href="#" onClick="{{ goAbout }}" style="color:{{ navAboutColor }}" style-hover="color:#f93a2f">About</a>
+      <div style="border-top:1px solid #1c1c1c;padding-top:28px;display:flex;flex-direction:column;gap:22px;font-size:12px;color:#8a8782">
+        <a href="https://instagram.com/benjis.uy" target="_blank" style="color:#8a8782" style-hover="color:#f93a2f">Instagram</a>
+        <a href="#" style="color:#8a8782" style-hover="color:#f93a2f">WhatsApp</a>
+      </div>
+    </nav>
+  </sc-if>
+</sc-if>
+<sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+  <header style="position:sticky;top:0;z-index:80;background:rgba(11,11,11,.92);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;padding:18px 40px;border-bottom:1px solid #1c1c1c">
+    <img src="assets/logo-wordmark.png" alt="Benji$" onClick="{{ goHome }}" style="height:36px;cursor:pointer">
+    <nav style="display:flex;gap:36px;font-size:12px;font-weight:600;letter-spacing:.24em;text-transform:uppercase">
+      <a href="#" onClick="{{ goShop }}" style="color:{{ navShopColor }}" style-hover="color:#f93a2f">Shop</a>
+      <a href="#" onClick="{{ goArchive }}" style="color:{{ navArchiveColor }}" style-hover="color:#f93a2f">Archivos</a>
+      <a href="#" onClick="{{ goCustom }}" style="color:{{ navCustomColor }}" style-hover="color:#f93a2f">Custom</a>
+      <a href="#" onClick="{{ goAbout }}" style="color:{{ navAboutColor }}" style-hover="color:#f93a2f">About</a>
+    </nav>
+    <div style="display:flex;gap:26px;font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;align-items:center">
+      <a href="#" style-hover="color:#f93a2f">Search</a>
+      <a href="#" style-hover="color:#f93a2f">♡</a>
+      <a href="#" onClick="{{ openCart }}" style-hover="color:#f93a2f">Bag ({{ cartCount }})</a>
+    </div>
+  </header>
+</sc-if>
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+<main data-screen-label="Home" style="animation:fadeUp .5s ease both">
+  <section style="height:140vh;position:relative">
+    <div style="position:sticky;top:0;height:100vh;overflow:hidden;background:#080808">
+      <div ref="{{ f0Ref }}" style="position:absolute;z-index:1;left:{{ f0Left }};top:2%;width:{{ f0W }};height:92vh;will-change:transform;overflow:hidden">
+        <img src="assets/hero-modelo1.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 20%">
+      </div>
+      <div ref="{{ f1Ref }}" style="position:absolute;z-index:1;left:{{ f1Left }};top:5%;width:{{ f1W }};height:80vh;will-change:transform;overflow:hidden">
+        <img src="assets/hero-flatlay.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center center">
+      </div>
+      <div ref="{{ f2Ref }}" style="position:absolute;z-index:1;left:{{ f2Left }};top:3%;width:{{ f2W }};height:86vh;will-change:transform;overflow:hidden">
+        <img src="assets/hero-modelo2.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 15%">
+      </div>
+      <div ref="{{ f3Ref }}" style="position:absolute;z-index:1;left:{{ f3Left }};top:6%;width:{{ f3W }};height:78vh;will-change:transform;overflow:hidden">
+        <img src="assets/hero-modelo3.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 20%">
+      </div>
+      <div ref="{{ s0Ref }}" style="position:absolute;z-index:2;left:50%;top:{{ letterTop }};height:{{ letterH }};aspect-ratio:1405/773;will-change:transform;clip-path:inset(0 77.8% 0 0);pointer-events:none;transform:translateX(-50%)">
+        <img src="assets/logo-wordmark.png" alt="" style="width:100%;height:100%">
+      </div>
+      <div ref="{{ s1Ref }}" style="position:absolute;z-index:2;left:50%;top:{{ letterTop }};height:{{ letterH }};aspect-ratio:1405/773;will-change:transform;clip-path:inset(0 54.5% 0 22.2%);pointer-events:none;transform:translateX(-50%)">
+        <img src="assets/logo-wordmark.png" alt="" style="width:100%;height:100%">
+      </div>
+      <div ref="{{ s2Ref }}" style="position:absolute;z-index:2;left:50%;top:{{ letterTop }};height:{{ letterH }};aspect-ratio:1405/773;will-change:transform;clip-path:inset(0 32.9% 0 45.5%);pointer-events:none;transform:translateX(-50%)">
+        <img src="assets/logo-wordmark.png" alt="" style="width:100%;height:100%">
+      </div>
+      <div ref="{{ s3Ref }}" style="position:absolute;z-index:2;left:50%;top:{{ letterTop }};height:{{ letterH }};aspect-ratio:1405/773;will-change:transform;clip-path:inset(0 24.5% 0 67.1%);pointer-events:none;transform:translateX(-50%)">
+        <img src="assets/logo-wordmark.png" alt="" style="width:100%;height:100%">
+      </div>
+      <div ref="{{ s4Ref }}" style="position:absolute;z-index:2;left:50%;top:{{ letterTop }};height:{{ letterH }};aspect-ratio:1405/773;will-change:transform;clip-path:inset(0 15.4% 0 75.5%);pointer-events:none;transform:translateX(-50%)">
+        <img src="assets/logo-wordmark.png" alt="" style="width:100%;height:100%">
+      </div>
+      <div ref="{{ s5Ref }}" style="position:absolute;z-index:2;left:50%;top:{{ letterTop }};height:{{ letterH }};aspect-ratio:1405/773;will-change:transform;clip-path:inset(0 0 0 84.6%);pointer-events:none;transform:translateX(-50%)">
+        <img src="assets/logo-wordmark.png" alt="" style="width:100%;height:100%">
+      </div>
+      <div ref="{{ scrollIndRef }}" style="position:absolute;z-index:3;left:50%;bottom:4%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;will-change:opacity">
+        <div style="width:1px;height:36px;background:linear-gradient(180deg,transparent,#3a3a3a)"></div>
+        <span style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.36em;color:#3a3a3a;text-transform:uppercase">Scroll</span>
+      </div>
+      <div ref="{{ heroCtaRef }}" style="position:absolute;z-index:3;right:40px;bottom:4.5%;opacity:0;will-change:opacity;display:flex;align-items:center;gap:14px">
+        <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.3em;color:#3a3a3a;text-transform:uppercase">026</span>
+        <a href="#" onClick="{{ goShop }}" style="font-size:11px;letter-spacing:.3em;color:#f2efec" style-hover="color:{{ accent }}">→</a>
+      </div>
+      <div style="position:absolute;inset:0;pointer-events:none;opacity:.04;background-image:{{ grainBg }}"></div>
+    </div>
+  </section>
+
+  <section style="padding:{{ dropPad }}">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:{{ dropGap }}">
+      <h2 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ footerGap }};font-weight:400;letter-spacing:.02em;text-transform:uppercase">Drop 01</h2>
+      <a href="#" onClick="{{ goShop }}" style="font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#8a8782" style-hover="color:#f93a2f">Ver todo →</a>
+    </div>
+    <div style="display:grid;grid-template-columns:{{ dropGrid }};gap:{{ gridGap }}">
+      <sc-for list="{{ featured }}" as="p" hint-placeholder-count="3">
+        <div onClick="{{ p.open }}" style="cursor:pointer;display:flex;flex-direction:column;gap:14px">
+          <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center;position:relative;transition:transform .35s ease" style-hover="transform:translateY(-4px)">
+            <span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ p.placeholder }} ]</span>
+            <sc-if value="{{ p.tag }}" hint-placeholder-val="{{ false }}">
+              <span style="position:absolute;top:14px;left:14px;font-size:10px;font-weight:600;letter-spacing:.2em;padding:5px 10px;background:{{ accent }};color:#0b0b0b">{{ p.tag }}</span>
+            </sc-if>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;letter-spacing:.14em;text-transform:uppercase">
+            <span>{{ p.name }}</span><span style="color:#8a8782">{{ p.price }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section ref="{{ gallerySecRef }}" style="height:{{ m ? '250vh' : '350vh' }};position:relative;border-top:1px solid #1c1c1c">
+    <div style="position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center">
+      <div ref="{{ gImg0Ref }}" style="position:absolute;inset:0;will-change:opacity,transform;opacity:1;transition:opacity .6s ease,transform 1s ease">
+        <img src="assets/hero-modelo1.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;transform:scale(1.02)">
+        <div style="position:absolute;inset:0;background:rgba(8,8,8,.4)"></div>
+      </div>
+      <div ref="{{ gImg1Ref }}" style="position:absolute;inset:0;will-change:opacity,transform;opacity:0;transition:opacity .6s ease,transform 1s ease">
+        <img src="assets/hero-modelo2.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 15%;transform:scale(1.02)">
+        <div style="position:absolute;inset:0;background:rgba(8,8,8,.4)"></div>
+      </div>
+      <div ref="{{ gImg2Ref }}" style="position:absolute;inset:0;will-change:opacity,transform;opacity:0;transition:opacity .6s ease,transform 1s ease">
+        <img src="assets/hero-modelo3.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;transform:scale(1.02)">
+        <div style="position:absolute;inset:0;background:rgba(8,8,8,.4)"></div>
+      </div>
+      <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:16px;pointer-events:none">
+        <span style="font-family:'Anton',sans-serif;font-size:{{ m ? '42px' : '80px' }};font-weight:400;text-transform:uppercase;letter-spacing:.06em;color:#f2efec;text-shadow:0 2px 30px rgba(0,0,0,.6)">Benji$</span>
+        <span style="font-family:ui-monospace,monospace;font-size:{{ m ? '9px' : '11px' }};letter-spacing:.4em;text-transform:uppercase;color:rgba(242,239,236,.5)">Montevideo — Uruguay</span>
+      </div>
+      <div ref="{{ gCountRef }}" style="position:absolute;bottom:5%;right:{{ m ? '16px' : '40px' }};z-index:2;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.3em;color:#3a3a3a;text-transform:uppercase">01 / 03</div>
+    </div>
+  </section>
+
+  <section style="padding:{{ unicosPad }};border-top:1px solid #1c1c1c;display:grid;grid-template-columns:{{ twoColGrid }};gap:{{ twoColGap }};align-items:center">
+    <div style="display:flex;flex-direction:column;gap:24px">
+      <h2 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ unicosTitle }};font-weight:400;line-height:.95;text-transform:uppercase">Únicos<br><span style="color:{{ accent }}">1/1</span></h2>
+      <p style="margin:0;max-width:38ch;color:#8a8782;font-size:15px;line-height:1.7">Piezas únicas hechas a partir de materiales recuperados. Una sola unidad de cada una. Cuando se va, se fue.</p>
+      <a href="#" onClick="{{ goUnicos }}" style="align-self:flex-start;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;border-bottom:1px solid {{ accent }};padding-bottom:6px" style-hover="color:#f93a2f">Ver piezas únicas</a>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ RIÑONERA 01 ]</span></div>
+      <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center;margin-top:44px"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ RIÑONERA 02 ]</span></div>
+    </div>
+  </section>
+
+  <section style="padding:{{ ctaPad }};border-top:1px solid #1c1c1c;text-align:center;display:flex;flex-direction:column;align-items:center;gap:26px">
+    <h2 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ ctaTitle }};font-weight:400;text-transform:uppercase">¿Tenés una idea?</h2>
+    <p style="margin:0;color:#8a8782;font-size:15px;max-width:44ch;line-height:1.7">Trabajamos prendas y piezas personalizadas. Contanos qué estás buscando y lo armamos juntos.</p>
+    <a href="#" onClick="{{ goCustom }}" style="border:1px solid {{ accent }};color:{{ accent }};padding:14px 34px;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase" style-hover="background:#f93a2f;color:#0b0b0b">Enviar consulta →</a>
+  </section>
+</main>
+</sc-if>
+
+<sc-if value="{{ isShop }}" hint-placeholder-val="{{ false }}">
+<main data-screen-label="Shop" style="animation:fadeUp .5s ease both;padding:{{ shopPad }}">
+  <h1 style="margin:0 0 {{ shopTitleGap }};font-family:'Anton',sans-serif;font-size:{{ shopTitleFs }};font-weight:400;text-transform:uppercase;line-height:1">{{ shopTitle }}</h1>
+  <div style="display:flex;gap:{{ gridGap }};font-size:{{ shopCatSize }};font-weight:600;letter-spacing:.22em;text-transform:uppercase;border-bottom:1px solid #1c1c1c;padding-bottom:{{ shopCatPad }};margin-bottom:{{ dropGap }};overflow-x:auto;-webkit-overflow-scrolling:touch">
+    <sc-for list="{{ cats }}" as="c" hint-placeholder-count="5">
+      <a href="#" onClick="{{ c.pick }}" style="color:{{ c.color }};border-bottom:2px solid {{ c.line }};padding-bottom:6px;white-space:nowrap" style-hover="color:#f93a2f">{{ c.name }}</a>
+    </sc-for>
+  </div>
+  <div style="height:{{ shopCarH }};position:relative;overflow:hidden;margin:0 {{ shopCarMargin }}">
+    <div style="position:absolute;left:50%;top:50%;display:flex;align-items:center;gap:26px;transform:translate({{ shopTx }}px,-50%);transition:transform .55s cubic-bezier(.2,.8,.2,1)">
+      <sc-for list="{{ shopItems }}" as="p" hint-placeholder-count="5">
+        <div onClick="{{ p.pick }}" style="height:{{ p.h }};width:{{ p.w }};opacity:{{ p.o }};flex-shrink:0;cursor:pointer;border-radius:18px;overflow:hidden;background:repeating-linear-gradient(45deg,#161616 0 12px,#101010 12px 24px);display:flex;align-items:center;justify-content:center;position:relative;transition:height .55s cubic-bezier(.2,.8,.2,1),width .55s cubic-bezier(.2,.8,.2,1),opacity .55s ease">
+          <span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ p.placeholder }} ]</span>
+          <sc-if value="{{ p.showTag }}" hint-placeholder-val="{{ false }}">
+            <span style="position:absolute;top:16px;left:16px;font-size:10px;font-weight:600;letter-spacing:.2em;padding:5px 10px;background:{{ p.tagBg }};color:{{ p.tagColor }};border:1px solid {{ p.tagBorder }}">{{ p.tag }}</span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:40px">
+    <span style="font-size:15px;letter-spacing:.18em;text-transform:uppercase">{{ shopSelName }} <span style="color:#8a8782">— {{ shopSelPrice }}</span></span>
+    <a href="#" onClick="{{ shopSelOpen }}" style="font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;border-bottom:1px solid {{ accent }};padding-bottom:6px" style-hover="color:#f93a2f">Ver pieza →</a>
+  </div>
+</main>
+</sc-if>
+
+<sc-if value="{{ isProduct }}" hint-placeholder-val="{{ false }}">
+<main data-screen-label="Producto" style="animation:fadeUp .5s ease both;display:grid;grid-template-columns:{{ prodGrid }};gap:0;min-height:{{ prodMinH }}">
+  <div style="display:flex;flex-direction:column;gap:2px">
+    <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ prod.placeholder }} — FOTO 1 ]</span></div>
+    <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ prod.placeholder }} — FOTO 2 / DETALLE ]</span></div>
+  </div>
+  <div style="padding:{{ prodInfoPad }};position:{{ prodPos }};top:{{ prodTop }};align-self:flex-start;display:flex;flex-direction:column;gap:26px">
+    <a href="#" onClick="{{ goShop }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#8a8782" style-hover="color:#f93a2f">← Shop</a>
+    <h1 style="margin:0;font-family:'Anton',sans-serif;font-size:44px;font-weight:400;text-transform:uppercase;line-height:1.05">{{ prod.name }}</h1>
+    <span style="font-size:22px;letter-spacing:.06em;font-weight:500">{{ prod.price }}</span>
+    <sc-if value="{{ prod.tag }}" hint-placeholder-val="{{ false }}">
+      <span style="align-self:flex-start;font-size:10px;font-weight:600;letter-spacing:.2em;padding:5px 10px;background:{{ accent }};color:#0b0b0b">{{ prod.tag }}</span>
+    </sc-if>
+    <p style="margin:0;color:#8a8782;font-size:14px;line-height:1.75;max-width:42ch">{{ prod.desc }}</p>
+    <span style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#57534e">Diseñado y producido en Uruguay</span>
+    <sc-if value="{{ prodBuyable }}" hint-placeholder-val="{{ true }}">
+      <div style="border-top:1px solid #1c1c1c;padding-top:22px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#8a8782">Color</span>
+          <div style="display:flex;gap:10px">
+            <span style="width:26px;height:26px;background:#1a1a1a;border:1px solid #f2efec;cursor:pointer"></span>
+            <span style="width:26px;height:26px;background:#3a3a3a;border:1px solid #2c2c2c;cursor:pointer"></span>
+            <span style="width:26px;height:26px;background:{{ accent }};border:1px solid #2c2c2c;cursor:pointer"></span>
+          </div>
+        </div>
+        <sc-if value="{{ hasSizes }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:baseline;gap:10px">
+              <span style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#8a8782">Size</span>
+              <span style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:{{ accent }}">(campo obligatorio)</span>
+            </div>
+            <div style="display:flex;gap:10px">
+              <sc-for list="{{ prodSizes }}" as="sz" hint-placeholder-count="3">
+                <a href="#" onClick="{{ sz.pick }}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:1px solid {{ sz.border }};background:{{ sz.bg }};color:{{ sz.color }};font-size:12px;font-weight:600;letter-spacing:.14em;transition:all .2s ease" style-hover="border-color:#f2efec">{{ sz.label }}</a>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#8a8782">Cantidad</span>
+          <div style="display:flex;align-items:center;gap:0;border:1px solid #2c2c2c;align-self:flex-start">
+            <a href="#" onClick="{{ qtyDec }}" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#8a8782" style-hover="color:#f2efec">−</a>
+            <span style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;letter-spacing:.1em;border-left:1px solid #2c2c2c;border-right:1px solid #2c2c2c">{{ qty }}</span>
+            <a href="#" onClick="{{ qtyInc }}" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#8a8782" style-hover="color:#f2efec">+</a>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:stretch;margin-top:6px">
+          <a href="#" onClick="{{ addToCart }}" style="flex:1;text-align:center;background:#f2efec;color:#0b0b0b;padding:16px 0;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase" style-hover="background:#f93a2f;color:#0b0b0b">Añadir al carrito</a>
+          <a href="#" style="border:1px solid #2c2c2c;display:flex;align-items:center;padding:0 18px" style-hover="border-color:#f93a2f;color:#f93a2f">♡</a>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ prodComingSoon }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px solid #2c2c2c;padding:16px;text-align:center;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:#8a8782">Coming soon</div>
+    </sc-if>
+    <div style="border-top:1px solid #1c1c1c;padding-top:22px;display:flex;flex-direction:column;gap:18px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#8a8782">
+      <span>Descripción +</span><span>Materiales +</span><span>Envíos y cambios +</span>
+    </div>
+    <a href="#" style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#57534e" style-hover="color:#f93a2f">Consultar por WhatsApp →</a>
+  </div>
+</main>
+</sc-if>
+
+<sc-if value="{{ isCustom }}" hint-placeholder-val="{{ false }}">
+<main data-screen-label="Custom" style="animation:fadeUp .5s ease both;padding:{{ customPad }};display:grid;grid-template-columns:{{ twoColGrid }};gap:{{ customGap }}">
+  <div style="display:flex;flex-direction:column;gap:28px">
+    <h1 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ customTitle }};font-weight:400;text-transform:uppercase;line-height:.95">¿Tenés<br>una idea?</h1>
+    <p style="margin:0;color:#8a8782;font-size:15px;line-height:1.75;max-width:42ch">Trabajamos prendas y piezas personalizadas: buzos, balaclavas, riñoneras y lo que se te ocurra. Contanos tu idea y te respondemos con una propuesta.</p>
+    <div style="aspect-ratio:4/3;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ FOTO PROCESO / TALLER ]</span></div>
+  </div>
+  <form style="display:flex;flex-direction:column;gap:26px;padding-top:14px">
+    <sc-for list="{{ customFields }}" as="f" hint-placeholder-count="5">
+      <label style="display:flex;flex-direction:column;gap:10px;font-size:11px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:#8a8782">{{ f.label }}
+        <input placeholder="{{ f.ph }}" style="background:transparent;border:none;border-bottom:1px solid #2c2c2c;color:#f2efec;font-family:'Archivo',sans-serif;font-size:15px;padding:8px 0;outline:none;letter-spacing:.02em">
+      </label>
+    </sc-for>
+    <label style="display:flex;flex-direction:column;gap:10px;font-size:11px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:#8a8782">Contanos tu idea
+      <textarea rows="4" placeholder="Qué querés hacer, referencias, colores…" style="background:transparent;border:none;border-bottom:1px solid #2c2c2c;color:#f2efec;font-family:'Archivo',sans-serif;font-size:15px;padding:8px 0;outline:none;resize:vertical"></textarea>
+    </label>
+    <div style="border:1px dashed #2c2c2c;padding:26px;text-align:center;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#57534e">Adjuntar imágenes de referencia</div>
+    <a href="#" style="text-align:center;background:{{ accent }};color:#0b0b0b;padding:16px 0;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase" style-hover="background:#f2efec">Enviar consulta →</a>
+  </form>
+</main>
+</sc-if>
+
+<sc-if value="{{ isAbout }}" hint-placeholder-val="{{ false }}">
+<main data-screen-label="About" style="animation:fadeUp .5s ease both;padding:{{ aboutPad }};display:flex;flex-direction:column;gap:{{ aboutGap }};max-width:1100px;margin:0 auto">
+  <div style="display:flex;flex-direction:column;gap:{{ aboutLogoGap }};align-items:center;text-align:center">
+    <img src="assets/logo-wordmark.png" alt="Benji$" style="height:{{ aboutLogoH }}">
+    <p style="margin:0;font-family:'Anton',sans-serif;font-size:{{ aboutSubtitle }};line-height:1.25;text-transform:uppercase;max-width:24ch">Marca independiente hecha en Montevideo</p>
+  </div>
+  <div style="display:grid;grid-template-columns:{{ twoColGrid }};gap:{{ aboutSecGap }};align-items:center">
+    <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ FOTO PROCESO ]</span></div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <h2 style="margin:0;font-family:'Anton',sans-serif;font-size:40px;font-weight:400;text-transform:uppercase">Proceso</h2>
+      <p style="margin:0;color:#8a8782;font-size:15px;line-height:1.8">Cada pieza se hace a mano, en tandas chicas. [ Texto de marca — editable desde el CMS ]</p>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:{{ twoColGrid }};gap:{{ aboutSecGap }};align-items:center">
+    <div style="display:flex;flex-direction:column;gap:20px;{{ aboutMatOrder }}">
+      <h2 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ aboutMatTitle }};font-weight:400;text-transform:uppercase">Materiales<br>recuperados</h2>
+      <p style="margin:0;color:#8a8782;font-size:15px;line-height:1.8">Las piezas únicas nacen de materiales que ya tuvieron una vida. Por eso son 1/1. [ Editable desde el CMS ]</p>
+      <a href="#" onClick="{{ goCustom }}" style="align-self:flex-start;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;border-bottom:1px solid {{ accent }};padding-bottom:6px" style-hover="color:#f93a2f">Pedí tu custom →</a>
+    </div>
+    <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ FOTO MATERIALES ]</span></div>
+  </div>
+</main>
+</sc-if>
+
+<sc-if value="{{ isArchive }}" hint-placeholder-val="{{ false }}">
+<main data-screen-label="Archivos" style="animation:fadeUp .5s ease both;padding:{{ m ? '40px 16px 60px' : '70px 40px 100px' }}">
+  <h1 style="margin:0 0 {{ m ? '28px' : '44px' }};font-family:'Anton',sans-serif;font-size:{{ m ? '48px' : '88px' }};font-weight:400;text-transform:uppercase;line-height:1">Archivos</h1>
+  <div style="display:grid;grid-template-columns:{{ m ? '1fr' : 'repeat(4,1fr)' }};gap:{{ m ? '16px' : '12px' }};grid-auto-rows:{{ m ? '280px' : '320px' }}">
+    <sc-for list="{{ archiveItems }}" as="a" hint-placeholder-count="6">
+      <div onClick="{{ a.open }}" style="cursor:pointer;position:relative;overflow:hidden;grid-column:{{ a.span }};background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px)" style-hover="transform:scale(1)">
+        <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px)">
+          <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ a.cover }} ]</span>
+        </div>
+        <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.7) 0%,transparent 60%)"></div>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:{{ m ? '20px' : '24px' }};display:flex;flex-direction:column;gap:6px">
+          <h3 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ m ? '24px' : '28px' }};font-weight:400;text-transform:uppercase;line-height:1.1">{{ a.title }}</h3>
+          <span style="font-size:11px;letter-spacing:.16em;color:#8a8782">{{ a.credit }}</span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</main>
+</sc-if>
+
+<sc-if value="{{ isArchiveDetail }}" hint-placeholder-val="{{ false }}">
+<main data-screen-label="Archivo detalle" style="animation:fadeUp .5s ease both;padding:{{ m ? '40px 16px 60px' : '70px 40px 100px' }}">
+  <a href="#" onClick="{{ goArchive }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#8a8782;display:block;margin-bottom:28px" style-hover="color:#f93a2f">← Archivos</a>
+  <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:{{ m ? '32px' : '50px' }}">
+    <h1 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ m ? '42px' : '72px' }};font-weight:400;text-transform:uppercase;line-height:1">{{ archDetail.title }}</h1>
+    <span style="font-size:12px;letter-spacing:.18em;color:#8a8782;text-transform:uppercase">{{ archDetail.credit }}</span>
+    <p style="margin:0;color:#8a8782;font-size:14px;line-height:1.75;max-width:56ch">{{ archDetail.desc }}</p>
+  </div>
+  <div style="display:grid;grid-template-columns:{{ m ? '1fr 1fr' : 'repeat(3,1fr)' }};gap:{{ m ? '8px' : '12px' }};grid-auto-rows:auto">
+    <sc-for list="{{ archPhotos }}" as="ph" hint-placeholder-count="6">
+      <div style="grid-column:{{ ph.span }};grid-row:{{ ph.rowSpan }};aspect-ratio:{{ ph.ratio }};position:relative;overflow:hidden;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px)">
+        <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ ph.label }} ]</span>
+      </div>
+    </sc-for>
+  </div>
+  <sc-if value="{{ archDetail.text }}" hint-placeholder-val="{{ false }}">
+    <div style="margin-top:{{ m ? '32px' : '60px' }};max-width:680px">
+      <p style="margin:0;color:#8a8782;font-size:15px;line-height:1.8">{{ archDetail.text }}</p>
+    </div>
+  </sc-if>
+</main>
+</sc-if>
+
+<footer style="border-top:1px solid #1c1c1c;padding:{{ footerPad }};display:flex;flex-direction:column;gap:{{ footerGap }}">
+  <div style="display:grid;grid-template-columns:{{ footerGrid }};gap:{{ footerColGap }}">
+    <img src="assets/logo-b.png" alt="B" style="height:80px;align-self:flex-start">
+    <div style="display:flex;flex-direction:column;gap:14px;font-size:12px;letter-spacing:.2em;text-transform:uppercase">
+      <span style="color:#57534e">Shop</span>
+      <a href="#" onClick="{{ goShop }}" style-hover="color:#f93a2f">Shop</a>
+      <a href="#" onClick="{{ goCustom }}" style-hover="color:#f93a2f">Custom</a>
+      <a href="#" onClick="{{ goAbout }}" style-hover="color:#f93a2f">About</a>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;font-size:12px;letter-spacing:.2em;text-transform:uppercase">
+      <span style="color:#57534e">Social</span>
+      <a href="https://instagram.com/benjis.uy" target="_blank" style-hover="color:#f93a2f">Instagram</a>
+      <a href="#" style-hover="color:#f93a2f">WhatsApp</a>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;font-size:12px;letter-spacing:.2em;text-transform:uppercase">
+      <span style="color:#57534e">Info</span>
+      <a href="#" style-hover="color:#f93a2f">Envíos</a>
+      <a href="#" style-hover="color:#f93a2f">Cambios</a>
+      <a href="#" style-hover="color:#f93a2f">FAQ</a>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:space-between;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#57534e">
+    <span>© Benji$ 2026</span><span>Montevideo, Uruguay</span>
+  </div>
+</footer>
+
+<sc-if value="{{ cartOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeCart }}" style="position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.6)"></div>
+  <aside data-screen-label="Carrito" style="position:fixed;top:0;right:0;bottom:0;width:{{ cartW }};z-index:95;background:#0f0f0f;border-left:{{ cartBorder }};padding:{{ cartPad }};display:flex;flex-direction:column;gap:28px;animation:fadeUp .35s ease both">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2 style="margin:0;font-family:'Anton',sans-serif;font-size:26px;font-weight:400;text-transform:uppercase">Tu carrito</h2>
+      <a href="#" onClick="{{ closeCart }}" style="font-size:12px;letter-spacing:.2em;color:#8a8782" style-hover="color:#f93a2f">Cerrar ✕</a>
+    </div>
+    <sc-if value="{{ cartEmpty }}" hint-placeholder-val="{{ true }}">
+      <p style="margin:40px 0;color:#57534e;font-size:13px;letter-spacing:.16em;text-transform:uppercase;text-align:center">Todavía no agregaste nada</p>
+    </sc-if>
+    <div style="flex:1;display:flex;flex-direction:column;gap:22px;overflow:auto">
+      <sc-for list="{{ cartItems }}" as="it" hint-placeholder-count="0">
+        <div style="display:flex;gap:16px;align-items:center">
+          <div style="width:64px;height:80px;background:repeating-linear-gradient(45deg,#141414 0 8px,#0f0f0f 8px 16px);flex-shrink:0"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase">
+            <span>{{ it.name }}</span><span style="color:#8a8782">{{ it.price }}</span>
+          </div>
+          <a href="#" onClick="{{ it.remove }}" style="color:#57534e;font-size:12px" style-hover="color:#f93a2f">✕</a>
+        </div>
+      </sc-for>
+    </div>
+    <div style="border-top:1px solid #1c1c1c;padding-top:22px;display:flex;flex-direction:column;gap:18px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;letter-spacing:.16em;text-transform:uppercase"><span>Subtotal</span><span>{{ subtotal }}</span></div>
+      <span style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#57534e">Envíos calculados al final</span>
+      <a href="#" style="text-align:center;background:#f2efec;color:#0b0b0b;padding:16px 0;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase" style-hover="background:#f93a2f">Finalizar compra</a>
+    </div>
+  </aside>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;: {&quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#F93A2F&quot;, &quot;options&quot;: [&quot;#F93A2F&quot;, &quot;#E7000B&quot;, &quot;#FF6B3D&quot;, &quot;#D9FF3D&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Marca&quot;}, &quot;mostrarBanner&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Marca&quot;}}">
+class Component extends DCLogic {
+  state = { loading: true, fading: false, page: 'home', trans: false, cat: 'ALL', prodIdx: 0, uniIdx: 0, cartOpen: false, cart: [], menuOpen: false, mob: false, selSize: null, qty: 1, archIdx: 0 };
+  componentDidMount() {
+    this._t1 = setTimeout(() => this.setState({ fading: true }), 1300);
+    this._t2 = setTimeout(() => this.setState({ loading: false }), 1950);
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const ctx = c.getContext('2d'), im = ctx.createImageData(128, 128);
+    for (let i = 0; i < im.data.length; i += 4) { const v = Math.random() * 255 | 0; im.data[i] = im.data[i+1] = im.data[i+2] = v; im.data[i+3] = 255; }
+    ctx.putImageData(im, 0, 0);
+    this.setState({ grain: 'url(' + c.toDataURL() + ')' });
+    this._reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this._mobile = window.innerWidth < 768;
+    this.setState({ mob: this._mobile });
+    this._onResize = () => { const m = window.innerWidth < 768; if (m !== this._mobile) { this._mobile = m; this.setState({ mob: m }); } };
+    window.addEventListener('resize', this._onResize);
+    this._tgt = { x: 0, y: 0, p: 0 }; this._cur = { x: 0, y: 0, p: 0 };
+    this._onMove = (e) => { this._tgt.x = (e.clientX / window.innerWidth - .5) * 2; this._tgt.y = (e.clientY / window.innerHeight - .5) * 2; };
+    this._onScroll = () => { this._tgt.p = Math.max(0, Math.min(1, window.scrollY / (window.innerHeight * .42))); };
+    this._onVis = () => { if (document.hidden) cancelAnimationFrame(this._raf); else this._startLoop(); };
+    if (!this._reduced) {
+      if (!this._mobile) window.addEventListener('mousemove', this._onMove);
+      window.addEventListener('scroll', this._onScroll, { passive: true });
+      document.addEventListener('visibilitychange', this._onVis);
+      this._startLoop();
+    }
+    this._bannerPos = 0;
+    this._bannerLoop = () => {
+      this._bannerPos -= .5;
+      const ban = (this._els || {}).ban;
+      if (ban) {
+        const w = ban.scrollWidth / 2;
+        if (this._bannerPos <= -w) this._bannerPos += w;
+        ban.style.transform = 'translate3d(' + this._bannerPos + 'px,0,0)';
+      }
+      this._banRaf = requestAnimationFrame(this._bannerLoop);
+    };
+    this._banRaf = requestAnimationFrame(this._bannerLoop);
+  }
+  _startLoop() {
+    cancelAnimationFrame(this._raf);
+    const els = this._els || (this._els = {});
+    const loop = () => {
+      this._raf = requestAnimationFrame(loop);
+      if (this.state.page !== 'home') return; // hero unmounted: skip all work
+      const c = this._cur, t = this._tgt;
+      const done = Math.abs(t.x - c.x) < .0005 && Math.abs(t.y - c.y) < .0005 && Math.abs(t.p - c.p) < .0005;
+      if (done) return; // settled: zero writes this frame
+      c.x += (t.x - c.x) * .06; c.y += (t.y - c.y) * .06; c.p += (t.p - c.p) * .14;
+      const x = c.x, y = c.y, p = c.p, st = (k, prop, v) => { if (els[k]) els[k].style[prop] = v; };
+      const vw = window.innerWidth / 100, vh = window.innerHeight / 100;
+      const mob = window.innerWidth < 768;
+      // p=0 → assembled (logo together), p=1 → spread (letters apart)
+      const L = mob ? [[-12,-3],[-6,4],[0,-2],[5,2],[9,-4],[14,3]] : [[-20,-4],[-10,5],[0,-3],[8,2],[15,-6],[24,4]];
+      for (let i = 0; i < 6; i++) {
+        const ox = L[i][0] * vw * p + x * (3 + i * .6);
+        const oy = L[i][1] * vh * p + y * (2 + i * .4);
+        st('s' + i, 'transform', 'translateX(-50%) translate3d(' + ox + 'px,' + oy + 'px,0)');
+      }
+      // photos: appear as letters spread
+      const photoO = Math.max(0, Math.min(1, p * 1.6 - .1));
+      st('f0', 'transform', 'translate3d(' + (x * -5) + 'px,' + (y * -3) + 'px,0)');
+      st('f0', 'opacity', photoO);
+      st('f1', 'transform', 'translate3d(' + (x * 7) + 'px,' + (y * 5) + 'px,0)');
+      st('f1', 'opacity', photoO);
+      st('f2', 'transform', 'translate3d(' + (x * -4) + 'px,' + (y * 6) + 'px,0)');
+      st('f2', 'opacity', photoO);
+      st('f3', 'transform', 'translate3d(' + (x * 8) + 'px,' + (y * -4) + 'px,0)');
+      st('f3', 'opacity', photoO);
+      // scroll indicator fades out, CTA visible at top (assembled state)
+      st('scr', 'opacity', Math.max(0, 1 - p * 4));
+      st('cta', 'opacity', p < .15 ? Math.min(1, (1 - p / .15)) : 0);
+      // Gallery crossfade
+      const galSec = els.galSec;
+      if (galSec) {
+        const gr = galSec.getBoundingClientRect();
+        const gH = galSec.offsetHeight - window.innerHeight;
+        const gp = Math.min(Math.max(-gr.top / gH, 0), 1);
+        const gi = Math.min(Math.floor(gp * 3), 2);
+        const imgs = [els.gi0, els.gi1, els.gi2];
+        for (let j = 0; j < 3; j++) {
+          if (imgs[j]) {
+            const active = j === gi;
+            imgs[j].style.opacity = active ? '1' : '0';
+            imgs[j].style.transform = active ? 'scale(1)' : 'scale(1.05)';
+          }
+        }
+        if (els.gCnt) els.gCnt.textContent = '0' + (gi + 1) + ' / 03';
+        // Gallery parallax: each image shifts vertically based on scroll
+        for (let j = 0; j < 3; j++) {
+          if (imgs[j]) {
+            const pOff = (gp - j / 3) * 40; // subtle vertical shift
+            const img = imgs[j].querySelector('img');
+            if (img) img.style.transform = 'scale(1.08) translateY(' + pOff + 'px)';
+          }
+        }
+      }
+    };
+    this._raf = requestAnimationFrame(loop);
+  }
+  componentWillUnmount() {
+    clearTimeout(this._t1); clearTimeout(this._t2); clearTimeout(this._t3); clearTimeout(this._t4);
+    cancelAnimationFrame(this._raf);
+    cancelAnimationFrame(this._banRaf);
+    window.removeEventListener('mousemove', this._onMove);
+    window.removeEventListener('scroll', this._onScroll);
+    document.removeEventListener('visibilitychange', this._onVis);
+    window.removeEventListener('resize', this._onResize);
+  }
+  goTo(page, extra) {
+    if (this.state.page === page && !extra) return;
+    this.setState({ trans: true });
+    this._t3 = setTimeout(() => {
+      this.setState(Object.assign({ page: page, selSize: null, qty: 1 }, extra || {}));
+      window.scrollTo(0, 0);
+    }, 340);
+    this._t4 = setTimeout(() => this.setState({ trans: false }), 720);
+  }
+  products() {
+    const cs = 'COMING SOON';
+    return [
+      { name: 'BALACLAVA 01', price: '$ X.XXX', cat: 'BALACLAVAS', status: 'published', sizes: ['S','M','L'], desc: 'Balaclava de punto grueso con terminaciones a mano. Abrigo y estilo en una sola pieza.' },
+      { name: 'BALACLAVA 02', price: '$ X.XXX', cat: 'BALACLAVAS', status: 'published', sizes: ['M','L','XL'], desc: 'Balaclava de algodón liviano, ideal para entretiempo. Corte relajado.' },
+      { name: 'BALACLAVA 03', price: '$ X.XXX', cat: 'BALACLAVAS', status: 'published', sizes: ['S','M','L','XL'], desc: 'Balaclava oversize de frisa rústica. Doble capa en la zona del cuello.' },
+      { name: 'BALACLAVA 04', price: '', cat: 'BALACLAVAS', status: 'coming', tag: cs, sizes: [] },
+      { name: 'BALACLAVA 05', price: '', cat: 'BALACLAVAS', status: 'coming', tag: cs, sizes: [] },
+      { name: 'BALACLAVA 06', price: '', cat: 'BALACLAVAS', status: 'coming', tag: cs, sizes: [] },
+      { name: 'RIÑONERA 01', price: '$ X.XXX', cat: 'RIÑONERAS', status: 'published', unique: true, tag: '1/1', sizes: ['ÚNICA'], desc: 'Riñonera hecha con materiales recuperados. Pieza única e irrepetible.' },
+      { name: 'RIÑONERA 02', price: '$ X.XXX', cat: 'RIÑONERAS', status: 'published', unique: true, tag: '1/1', sizes: ['ÚNICA'], desc: 'Riñonera artesanal con cierre YKK y correa ajustable. Pieza 1/1.' },
+      { name: 'RIÑONERA 03', price: '$ X.XXX', cat: 'RIÑONERAS', status: 'sold', unique: true, tag: 'SOLD OUT', sizes: [], desc: '' },
+      { name: 'BUZO 01', price: '', cat: 'BUZOS', status: 'coming', tag: cs, sizes: [], desc: 'Buzo oversize de frisa rústica con capucha y bolsillos asimétricos.' },
+      { name: 'BUZO 02', price: '', cat: 'BUZOS', status: 'coming', tag: cs, sizes: [], desc: 'Buzo liviano con estampa serigráfica y corte boxy.' }
+    ];
+  }
+  renderVals() {
+    const s = this.state, accent = this.props.accent ?? '#F93A2F';
+    const all = this.products();
+    const deco = (p, i) => ({
+      name: p.name, price: p.price, placeholder: 'FOTO ' + p.name, tag: p.tag || '', desc: p.desc || '',
+      tagBg: p.tag === '1/1' ? accent : '#0b0b0b',
+      tagColor: p.tag === '1/1' ? '#0b0b0b' : '#8a8782',
+      tagBorder: p.tag === '1/1' ? accent : '#2c2c2c',
+      opacity: p.status === 'sold' ? '.45' : '1',
+      open: (e) => { e.preventDefault(); this.goTo('product', { prodIdx: all.indexOf(p) }); }
+    });
+    const GAP = 26, SW = 230, LW = 440;
+    const idx = Math.min(s.shopIdx || 0, Math.max(0, filteredLen() - 1));
+    function filteredLen() { return (s.cat === 'ALL' ? all : s.cat === 'ÚNICOS' ? all.filter(p => p.unique) : all.filter(p => p.cat === s.cat)).length; }
+    const filtered = s.cat === 'ALL' ? all : s.cat === 'ÚNICOS' ? all.filter(p => p.unique) : all.filter(p => p.cat === s.cat);
+    const prod = all[s.prodIdx] || all[0];
+    const nav = (page) => (e) => { e.preventDefault(); this.goTo(page); };
+    const catNames = ['ALL', 'BUZOS', 'BALACLAVAS', 'RIÑONERAS', 'ÚNICOS'];
+    const els = this._els || (this._els = {});
+    const mk = (k) => (el) => { els[k] = el; };
+    const m = s.mob;
+    const toggleMenu = (e) => { e.preventDefault(); this.setState({ menuOpen: !s.menuOpen }); };
+    const closeMenu = (e) => { e.preventDefault(); this.setState({ menuOpen: false }); };
+    const navGo = (page) => (e) => { e.preventDefault(); this.setState({ menuOpen: false }); this.goTo(page); };
+    const isDesktop = !m;
+    return {
+      accent, m, isDesktop,
+      grainBg: s.grain || 'none',
+      f0Left: m ? '5%' : '10%', f0W: m ? '16vw' : '8vw',
+      f1Left: m ? '28%' : '38%', f1W: m ? '14vw' : '7vw',
+      f2Left: m ? '52%' : '66%', f2W: m ? '12vw' : '6vw',
+      f3Left: m ? '76%' : '88%', f3W: m ? '20vw' : '10vw',
+      letterTop: m ? '15vh' : '5vh', letterH: m ? '60vh' : '90vh',
+      dropPad: m ? '60px 16px 60px' : '110px 40px 90px',
+      dropGap: m ? '28px' : '44px', dropTitle: m ? '36px' : '56px',
+      dropGrid: m ? 'repeat(2,1fr)' : 'repeat(3,1fr)',
+      gridGap: m ? '16px' : '28px',
+      unicosPad: m ? '60px 16px' : '100px 40px',
+      twoColGrid: m ? '1fr' : '1fr 1fr', twoColGap: m ? '32px' : '60px',
+      unicosTitle: m ? '48px' : '72px',
+      ctaPad: m ? '70px 16px' : '130px 40px', ctaTitle: m ? '40px' : '64px',
+      shopPad: m ? '40px 16px 60px' : '70px 40px 100px',
+      footerColGap: m ? '24px' : '40px',
+      shopTitleFs: m ? '48px' : '88px', shopTitleGap: m ? '24px' : '40px',
+      shopCatSize: m ? '10px' : '12px', shopCatPad: m ? '14px' : '20px',
+      shopCarH: m ? '52vh' : '66vh', shopCarMargin: m ? '-16px' : '-40px',
+      prodGrid: m ? '1fr' : '1.25fr 1fr', prodMinH: m ? 'auto' : '88vh',
+      prodInfoPad: m ? '28px 16px 60px' : '70px 56px',
+      prodPos: m ? 'relative' : 'sticky', prodTop: m ? '0' : '60px',
+      customPad: m ? '40px 16px 70px' : '70px 40px 110px',
+      customGap: m ? '40px' : '70px', customTitle: m ? '52px' : '96px',
+      aboutPad: m ? '50px 16px 70px' : '90px 40px 110px',
+      aboutGap: m ? '50px' : '100px', aboutLogoGap: m ? '22px' : '34px',
+      aboutLogoH: m ? '70px' : '130px', aboutSubtitle: m ? '24px' : '34px',
+      aboutSecGap: m ? '28px' : '60px', aboutMatOrder: m ? 'order:2' : '',
+      aboutMatTitle: m ? '32px' : '40px',
+      footerPad: m ? '40px 16px 30px' : '70px 40px 40px',
+      footerGap: m ? '36px' : '56px',
+      footerGrid: m ? '1fr 1fr' : '2fr 1fr 1fr 1fr',
+      cartW: m ? '100%' : '420px',
+      cartBorder: m ? 'none' : '1px solid #1c1c1c',
+      cartPad: m ? '28px 16px' : '36px 32px',
+      headerPad: m ? '14px 16px' : '18px 40px',
+      s0Ref: mk('s0'), s1Ref: mk('s1'), s2Ref: mk('s2'), s3Ref: mk('s3'), s4Ref: mk('s4'), s5Ref: mk('s5'),
+      f0Ref: mk('f0'), f1Ref: mk('f1'), f2Ref: mk('f2'), f3Ref: mk('f3'),
+      heroCtaRef: mk('cta'), scrollIndRef: mk('scr'), bannerRef: mk('ban'),
+      gallerySecRef: mk('galSec'), gImg0Ref: mk('gi0'), gImg1Ref: mk('gi1'), gImg2Ref: mk('gi2'), gCountRef: mk('gCnt'),
+      menuOpen: s.menuOpen, toggleMenu, closeMenu,
+      showBanner: this.props.mostrarBanner ?? true,
+      loading: s.loading, loaderOpacity: s.fading ? 0 : 1,
+      transOpacity: s.trans ? 1 : 0,
+      isHome: s.page === 'home', isShop: s.page === 'shop', isProduct: s.page === 'product',
+      isCustom: s.page === 'custom', isAbout: s.page === 'about', isUnicos: s.page === 'unicos',
+      navShopColor: s.page === 'shop' || s.page === 'product' || s.page === 'unicos' ? accent : '#f2efec',
+      navArchiveColor: s.page === 'archive' || s.page === 'archiveDetail' ? accent : '#f2efec',
+      navCustomColor: s.page === 'custom' ? accent : '#f2efec',
+      navAboutColor: s.page === 'about' ? accent : '#f2efec',
+      goHome: m ? navGo('home') : nav('home'),
+      goShop: m ? navGo('shop') : nav('shop'),
+      goArchive: m ? navGo('archive') : nav('archive'),
+      goCustom: m ? navGo('custom') : nav('custom'),
+      goAbout: m ? navGo('about') : nav('about'),
+      isArchive: s.page === 'archive', isArchiveDetail: s.page === 'archiveDetail',
+      goUnicos: (e) => { e.preventDefault(); this.goTo('shop', { cat: 'ÚNICOS', shopIdx: 0 }); },
+      customFields: [
+        { label: 'Nombre', ph: 'Tu nombre' },
+        { label: 'Instagram', ph: '@usuario' },
+        { label: 'Email', ph: 'tu@email.com' },
+        { label: 'WhatsApp', ph: '09x xxx xxx' },
+        { label: 'Presupuesto aproximado', ph: 'Opcional' }
+      ],
+      shopTitle: s.cat === 'ALL' ? 'Shop' : s.cat.toLowerCase(),
+      cats: catNames.map(c => ({
+        name: c,
+        color: s.cat === c ? '#f2efec' : '#8a8782',
+        line: s.cat === c ? accent : 'transparent',
+        pick: (e) => { e.preventDefault(); this.setState({ cat: c, shopIdx: 0 }); }
+      })),
+      featured: [all[0], all[1], all[6]].map(deco),
+      shopItems: filtered.map((p, i) => {
+        const sel = i === idx, d = deco(p);
+        const mSW = 160, mLW = 280;
+        return Object.assign(d, {
+          sel, showTag: !!p.tag,
+          h: sel ? (m ? '50vh' : '62vh') : (m ? '34vh' : '42vh'),
+          w: (sel ? (m ? mLW : LW) : (m ? mSW : SW)) + 'px',
+          o: p.status === 'sold' ? (sel ? '.7' : '.3') : (sel ? '1' : '.5'),
+          pick: (e) => {
+            e.preventDefault();
+            if (sel) this.goTo('product', { prodIdx: all.indexOf(p) });
+            else this.setState({ shopIdx: i });
+          }
+        });
+      }),
+      shopTx: m ? -(idx * (160 + GAP) + 280 / 2) : -(idx * (SW + GAP) + LW / 2),
+      shopSelName: (filtered[idx] || {}).name || '',
+      shopSelPrice: (filtered[idx] || {}).price || '',
+      shopSelOpen: (e) => { e.preventDefault(); const p = filtered[idx]; if (p) this.goTo('product', { prodIdx: all.indexOf(p) }); },
+      prod: deco(prod), prodBuyable: prod.status === 'published', prodComingSoon: prod.status === 'coming',
+      prodSizes: (prod.sizes || []).map(sz => ({
+        label: sz,
+        sel: s.selSize === sz,
+        border: s.selSize === sz ? '#f2efec' : '#2c2c2c',
+        bg: s.selSize === sz ? '#f2efec' : 'transparent',
+        color: s.selSize === sz ? '#0b0b0b' : '#f2efec',
+        pick: (e) => { e.preventDefault(); this.setState({ selSize: sz }); }
+      })),
+      hasSizes: (prod.sizes || []).length > 0,
+      qty: s.qty,
+      qtyInc: (e) => { e.preventDefault(); this.setState({ qty: s.qty + 1 }); },
+      qtyDec: (e) => { e.preventDefault(); if (s.qty > 1) this.setState({ qty: s.qty - 1 }); },
+      addToCart: (e) => { e.preventDefault(); const items = []; for (let i = 0; i < s.qty; i++) items.push({ ...prod, size: s.selSize }); this.setState({ cart: s.cart.concat(items), cartOpen: true, qty: 1 }); },
+      cartOpen: s.cartOpen, cartEmpty: s.cart.length === 0, cartCount: s.cart.length,
+      cartItems: s.cart.map((p, i) => ({
+        name: p.name, price: p.price,
+        remove: (e) => { e.preventDefault(); this.setState({ cart: s.cart.filter((_, j) => j !== i) }); }
+      })),
+      subtotal: s.cart.length ? '$ X.XXX' : '$ 0',
+      openCart: (e) => { e.preventDefault(); this.setState({ cartOpen: true }); },
+      closeCart: (e) => { e.preventDefault(); this.setState({ cartOpen: false }); },
+      archiveItems: this._archives().map((a, i) => ({
+        title: a.title, credit: a.credit, cover: 'COVER ' + a.title,
+        span: a.wide ? (m ? 'auto' : 'span 2') : 'auto',
+        open: (e) => { e.preventDefault(); this.goTo('archiveDetail', { archIdx: i }); }
+      })),
+      archDetail: (() => { const a = this._archives()[s.archIdx] || this._archives()[0]; return { title: a.title, credit: a.credit, desc: a.desc, text: a.text || '' }; })(),
+      archPhotos: (() => {
+        const a = this._archives()[s.archIdx] || this._archives()[0];
+        const layouts = [
+          { span: m ? 'span 2' : 'span 2', rowSpan: 'span 2', ratio: '3/4' },
+          { span: 'auto', rowSpan: 'auto', ratio: '1/1' },
+          { span: 'auto', rowSpan: 'auto', ratio: '4/5' },
+          { span: 'auto', rowSpan: 'auto', ratio: '3/4' },
+          { span: m ? 'span 2' : 'auto', rowSpan: 'auto', ratio: '16/9' },
+          { span: 'auto', rowSpan: 'auto', ratio: '1/1' },
+          { span: m ? 'auto' : 'span 2', rowSpan: 'auto', ratio: m ? '3/4' : '16/9' },
+          { span: 'auto', rowSpan: 'auto', ratio: '4/5' },
+        ];
+        return a.photos.map((p, j) => Object.assign({}, layouts[j % layouts.length], { label: p }));
+      })()
+    };
+  }
+  _archives() {
+    return [
+      { title: 'STREET SESH 01', credit: 'Fotos @fotógrafo — Marzo, 2025', wide: false, desc: 'Primera sesión callejera de Benji$. Montevideo de noche, prendas en su hábitat natural.', text: 'La primera salida a la calle con las piezas terminadas. Sin producción, sin luces artificiales. Solo la ciudad y la ropa.', photos: ['STREET 01 — FOTO 1','STREET 01 — FOTO 2','STREET 01 — FOTO 3','STREET 01 — FOTO 4','STREET 01 — FOTO 5','STREET 01 — FOTO 6'] },
+      { title: 'STREET SESH 02', credit: 'Fotos @fotógrafo — Mayo, 2025', wide: false, desc: 'Segunda sesión. Ciudad Vieja, atardecer, balaclavas y riñoneras.', text: '', photos: ['STREET 02 — FOTO 1','STREET 02 — FOTO 2','STREET 02 — FOTO 3','STREET 02 — FOTO 4','STREET 02 — FOTO 5'] },
+      { title: 'LOOKBOOK DROP 01', credit: 'Fotos @fotógrafo — Junio, 2025', wide: true, desc: 'Lookbook completo del primer drop. Todas las piezas, todos los ángulos.', text: 'Cada prenda fotografiada en contexto. Sin fondo blanco, sin maniquí. Así se usan.', photos: ['LOOKBOOK — FOTO 1','LOOKBOOK — FOTO 2','LOOKBOOK — FOTO 3','LOOKBOOK — FOTO 4','LOOKBOOK — FOTO 5','LOOKBOOK — FOTO 6','LOOKBOOK — FOTO 7','LOOKBOOK — FOTO 8'] },
+      { title: 'DETRÁS DE ESCENA', credit: 'Benji$ — 2025', wide: false, desc: 'El proceso. El taller. Las manos detrás de cada pieza.', text: '', photos: ['BTS — FOTO 1','BTS — FOTO 2','BTS — FOTO 3','BTS — FOTO 4'] },
+      { title: 'STREET SESH 03', credit: 'Fotos @fotógrafo — Julio, 2025', wide: false, desc: 'Tercera sesión. Rambla, mediodía, sol directo.', text: '', photos: ['STREET 03 — FOTO 1','STREET 03 — FOTO 2','STREET 03 — FOTO 3','STREET 03 — FOTO 4','STREET 03 — FOTO 5'] },
+      { title: 'DESFILE BENJI$', credit: 'Fotos @fotógrafo — Agosto, 2025', wide: true, desc: 'Primer desfile de Benji$. Todas las piezas en movimiento.', text: 'La primera vez que las piezas se vieron en pasarela. Un espacio industrial en el Cerro, música en vivo, 15 modelos.', photos: ['DESFILE — FOTO 1','DESFILE — FOTO 2','DESFILE — FOTO 3','DESFILE — FOTO 4','DESFILE — FOTO 5','DESFILE — FOTO 6','DESFILE — FOTO 7'] }
+    ];
+  }
+}
+</script>
+</body>
+</html>
