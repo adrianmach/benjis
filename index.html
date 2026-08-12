@@ -450,8 +450,11 @@ a:hover{color:#f93a2f}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;: {&quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#F93A2F&quot;, &quot;options&quot;: [&quot;#F93A2F&quot;, &quot;#E7000B&quot;, &quot;#FF6B3D&quot;, &quot;#D9FF3D&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Marca&quot;}, &quot;mostrarBanner&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Marca&quot;}}">
 class Component extends DCLogic {
-  state = { loading: true, fading: false, page: 'home', trans: false, cat: 'ALL', prodIdx: 0, uniIdx: 0, cartOpen: false, cart: [], menuOpen: false, mob: false, selSize: null, qty: 1, archIdx: 0 };
+  state = { loading: true, fading: false, page: 'home', trans: false, cat: 'ALL', prodIdx: 0, uniIdx: 0, cartOpen: false, cart: [], menuOpen: false, mob: false, selSize: null, qty: 1, archIdx: 0, cmsSettings: null, cmsProducts: null, cmsArchives: null, cmsCategories: null, cmsCustomFields: null };
   componentDidMount() {
+    fetch('/api/content').then(r => r.json()).then(d => this.setState({ cmsSettings: d.settings, cmsCategories: d.categories, cmsCustomFields: d.customFields })).catch(() => {});
+    fetch('/api/products').then(r => r.json()).then(d => this.setState({ cmsProducts: d })).catch(() => {});
+    fetch('/api/archives').then(r => r.json()).then(d => this.setState({ cmsArchives: d })).catch(() => {});
     this._t1 = setTimeout(() => this.setState({ fading: true }), 1300);
     this._t2 = setTimeout(() => this.setState({ loading: false }), 1950);
     const c = document.createElement('canvas'); c.width = c.height = 128;
@@ -583,8 +586,10 @@ class Component extends DCLogic {
     ];
   }
   renderVals() {
-    const s = this.state, accent = this.props.accent ?? '#F93A2F';
-    const all = this.products();
+    const s = this.state;
+    const settings = s.cmsSettings || {};
+    const accent = settings.accent_color || this.props.accent || '#F93A2F';
+    const all = s.cmsProducts || this.products();
     const deco = (p, i) => ({
       name: p.name, price: p.price, placeholder: 'FOTO ' + p.name, tag: p.tag || '', desc: p.desc || '',
       tagBg: p.tag === '1/1' ? accent : '#0b0b0b',
@@ -599,7 +604,10 @@ class Component extends DCLogic {
     const filtered = s.cat === 'ALL' ? all : s.cat === 'ÚNICOS' ? all.filter(p => p.unique) : all.filter(p => p.cat === s.cat);
     const prod = all[s.prodIdx] || all[0];
     const nav = (page) => (e) => { e.preventDefault(); this.goTo(page); };
-    const catNames = ['ALL', 'BUZOS', 'BALACLAVAS', 'RIÑONERAS', 'ÚNICOS'];
+    const catNames = ['ALL', ...(s.cmsCategories || ['BUZOS', 'BALACLAVAS', 'RIÑONERAS']), 'ÚNICOS'];
+    const archives = (s.cmsArchives || this._archives()).map(a => Object.assign({}, a, {
+      photos: (a.photos || []).map(ph => typeof ph === 'string' ? ph : ph.label)
+    }));
     const els = this._els || (this._els = {});
     const mk = (k) => (el) => { els[k] = el; };
     const m = s.mob;
@@ -650,7 +658,7 @@ class Component extends DCLogic {
       heroCtaRef: mk('cta'), scrollIndRef: mk('scr'), bannerRef: mk('ban'),
       gallerySecRef: mk('galSec'), gImg0Ref: mk('gi0'), gImg1Ref: mk('gi1'), gImg2Ref: mk('gi2'), gCountRef: mk('gCnt'),
       menuOpen: s.menuOpen, toggleMenu, closeMenu,
-      showBanner: this.props.mostrarBanner ?? true,
+      showBanner: settings.banner_visible !== undefined ? settings.banner_visible : (this.props.mostrarBanner ?? true),
       loading: s.loading, loaderOpacity: s.fading ? 0 : 1,
       transOpacity: s.trans ? 1 : 0,
       isHome: s.page === 'home', isShop: s.page === 'shop', isProduct: s.page === 'product',
@@ -666,7 +674,7 @@ class Component extends DCLogic {
       goAbout: m ? navGo('about') : nav('about'),
       isArchive: s.page === 'archive', isArchiveDetail: s.page === 'archiveDetail',
       goUnicos: (e) => { e.preventDefault(); this.goTo('shop', { cat: 'ÚNICOS', shopIdx: 0 }); },
-      customFields: [
+      customFields: s.cmsCustomFields ? s.cmsCustomFields.map(f => ({ label: f.label, ph: f.placeholder })) : [
         { label: 'Nombre', ph: 'Tu nombre' },
         { label: 'Instagram', ph: '@usuario' },
         { label: 'Email', ph: 'tu@email.com' },
@@ -680,7 +688,7 @@ class Component extends DCLogic {
         line: s.cat === c ? accent : 'transparent',
         pick: (e) => { e.preventDefault(); this.setState({ cat: c, shopIdx: 0 }); }
       })),
-      featured: [all[0], all[1], all[6]].map(deco),
+      featured: (all.filter(p => p.featured).length ? all.filter(p => p.featured) : [all[0], all[1], all[6]].filter(Boolean)).slice(0, 3).map(deco),
       shopItems: filtered.map((p, i) => {
         const sel = i === idx, d = deco(p);
         const mSW = 160, mLW = 280;
@@ -722,14 +730,14 @@ class Component extends DCLogic {
       subtotal: s.cart.length ? '$ X.XXX' : '$ 0',
       openCart: (e) => { e.preventDefault(); this.setState({ cartOpen: true }); },
       closeCart: (e) => { e.preventDefault(); this.setState({ cartOpen: false }); },
-      archiveItems: this._archives().map((a, i) => ({
+      archiveItems: archives.map((a, i) => ({
         title: a.title, credit: a.credit, cover: 'COVER ' + a.title,
         span: a.wide ? (m ? 'auto' : 'span 2') : 'auto',
         open: (e) => { e.preventDefault(); this.goTo('archiveDetail', { archIdx: i }); }
       })),
-      archDetail: (() => { const a = this._archives()[s.archIdx] || this._archives()[0]; return { title: a.title, credit: a.credit, desc: a.desc, text: a.text || '' }; })(),
+      archDetail: (() => { const a = archives[s.archIdx] || archives[0]; return { title: a.title, credit: a.credit, desc: a.desc, text: a.text || '' }; })(),
       archPhotos: (() => {
-        const a = this._archives()[s.archIdx] || this._archives()[0];
+        const a = archives[s.archIdx] || archives[0];
         const layouts = [
           { span: m ? 'span 2' : 'span 2', rowSpan: 'span 2', ratio: '3/4' },
           { span: 'auto', rowSpan: 'auto', ratio: '1/1' },
