@@ -118,23 +118,25 @@ a:hover{color:#f93a2f}
       <div ref="{{ f3Ref }}" style="position:absolute;z-index:1;left:{{ f3Left }};top:6%;width:{{ f3W }};height:78vh;will-change:transform;overflow:hidden;opacity:0">
         <img src="assets/hero-modelo3.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 20%">
       </div>
-      <div ref="{{ s0Ref }}" style="position:absolute;z-index:2;left:50%;top:{{ letterTop }};height:{{ letterH }};aspect-ratio:1405/773;will-change:transform;clip-path:inset(0 77.8% 0 0);pointer-events:none;transform:translateX(-50%)">
-        <img src="assets/logo-wordmark.png" alt="" style="width:100%;height:100%">
-      </div>
-      <div ref="{{ s1Ref }}" style="position:absolute;z-index:2;left:50%;top:{{ letterTop }};height:{{ letterH }};aspect-ratio:1405/773;will-change:transform;clip-path:inset(0 54.5% 0 22.2%);pointer-events:none;transform:translateX(-50%)">
-        <img src="assets/logo-wordmark.png" alt="" style="width:100%;height:100%">
-      </div>
-      <div ref="{{ s2Ref }}" style="position:absolute;z-index:2;left:50%;top:{{ letterTop }};height:{{ letterH }};aspect-ratio:1405/773;will-change:transform;clip-path:inset(0 32.9% 0 45.5%);pointer-events:none;transform:translateX(-50%)">
-        <img src="assets/logo-wordmark.png" alt="" style="width:100%;height:100%">
-      </div>
-      <div ref="{{ s3Ref }}" style="position:absolute;z-index:2;left:50%;top:{{ letterTop }};height:{{ letterH }};aspect-ratio:1405/773;will-change:transform;clip-path:inset(0 24.5% 0 67.1%);pointer-events:none;transform:translateX(-50%)">
-        <img src="assets/logo-wordmark.png" alt="" style="width:100%;height:100%">
-      </div>
-      <div ref="{{ s4Ref }}" style="position:absolute;z-index:2;left:50%;top:{{ letterTop }};height:{{ letterH }};aspect-ratio:1405/773;will-change:transform;clip-path:inset(0 15.4% 0 75.5%);pointer-events:none;transform:translateX(-50%)">
-        <img src="assets/logo-wordmark.png" alt="" style="width:100%;height:100%">
-      </div>
-      <div ref="{{ s5Ref }}" style="position:absolute;z-index:2;left:50%;top:{{ letterTop }};height:{{ letterH }};aspect-ratio:1405/773;will-change:transform;clip-path:inset(0 0 0 84.6%);pointer-events:none;transform:translateX(-50%)">
-        <img src="assets/logo-wordmark.png" alt="" style="width:100%;height:100%">
+      <div style="position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:flex-start;gap:{{ letterGap }};pointer-events:none">
+        <div ref="{{ s0Ref }}" style="position:relative;height:{{ letterH }};aspect-ratio:276/773;overflow:hidden;flex-shrink:0;will-change:transform">
+          <img src="assets/logo-wordmark.png" alt="" style="position:absolute;top:0;left:-10.87%;width:509.06%;height:100%">
+        </div>
+        <div ref="{{ s1Ref }}" style="position:relative;height:{{ letterH }};aspect-ratio:305/773;overflow:hidden;flex-shrink:0;will-change:transform">
+          <img src="assets/logo-wordmark.png" alt="" style="position:absolute;top:0;left:-103.93%;width:460.66%;height:100%">
+        </div>
+        <div ref="{{ s2Ref }}" style="position:relative;height:{{ letterH }};aspect-ratio:282/773;overflow:hidden;flex-shrink:0;will-change:transform">
+          <img src="assets/logo-wordmark.png" alt="" style="position:absolute;top:0;left:-232.27%;width:498.23%;height:100%">
+        </div>
+        <div ref="{{ s3Ref }}" style="position:relative;height:{{ letterH }};aspect-ratio:93/773;overflow:hidden;flex-shrink:0;will-change:transform">
+          <img src="assets/logo-wordmark.png" alt="" style="position:absolute;top:0;left:-1019.35%;width:1510.75%;height:100%">
+        </div>
+        <div ref="{{ s4Ref }}" style="position:relative;height:{{ letterH }};aspect-ratio:85/773;overflow:hidden;flex-shrink:0;will-change:transform">
+          <img src="assets/logo-wordmark.png" alt="" style="position:absolute;top:0;left:-1270.59%;width:1652.94%;height:100%">
+        </div>
+        <div ref="{{ s5Ref }}" style="position:relative;height:{{ letterH }};aspect-ratio:165/773;overflow:hidden;flex-shrink:0;will-change:transform">
+          <img src="assets/logo-wordmark.png" alt="" style="position:absolute;top:0;left:-733.33%;width:851.52%;height:100%">
+        </div>
       </div>
       <div ref="{{ scrollIndRef }}" style="position:absolute;z-index:3;left:50%;bottom:4%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;will-change:opacity">
         <div style="width:1px;height:36px;background:linear-gradient(180deg,transparent,#3a3a3a)"></div>
@@ -614,7 +616,6 @@ class Component extends DCLogic {
   }
   _startLoop() {
     cancelAnimationFrame(this._raf);
-    console.log('HERO STARTED', { reducedMotion: false, rafRunning: true });
     const els = this._els || (this._els = {});
     const loop = () => {
       this._raf = requestAnimationFrame(loop);
@@ -631,7 +632,7 @@ class Component extends DCLogic {
       for (let i = 0; i < 6; i++) {
         const ox = L[i][0] * vw * p + x * (3 + i * .6);
         const oy = L[i][1] * vh * p + y * (2 + i * .4);
-        st('s' + i, 'transform', 'translateX(-50%) translate3d(' + ox + 'px,' + oy + 'px,0)');
+        st('s' + i, 'transform', 'translate3d(' + ox + 'px,' + oy + 'px,0)');
       }
       // photos: appear as letters spread
       const photoO = Math.max(0, Math.min(1, p * 1.6 - .1));
@@ -802,7 +803,7 @@ class Component extends DCLogic {
       f1Left: m ? '28%' : '38%', f1W: m ? '14vw' : '7vw',
       f2Left: m ? '52%' : '66%', f2W: m ? '12vw' : '6vw',
       f3Left: m ? '76%' : '88%', f3W: m ? '20vw' : '10vw',
-      letterTop: m ? '15vh' : '5vh', letterH: m ? '60vh' : '90vh',
+      letterH: m ? '10vh' : '18vh', letterGap: m ? '2vw' : '0.8vw',
       dropPad: m ? '60px 16px 60px' : '110px 40px 90px',
       dropGap: m ? '28px' : '44px', dropTitle: m ? '36px' : '56px',
       dropGrid: m ? 'repeat(2,1fr)' : 'repeat(3,1fr)',
