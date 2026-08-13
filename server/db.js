@@ -205,6 +205,8 @@ function seed(database) {
   }
 }
 
+export const SETTINGS_KEYS = Object.keys(DEFAULT_SETTINGS);
+
 export function getDb() {
   if (db) return db;
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
