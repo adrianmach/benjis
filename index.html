@@ -595,11 +595,13 @@ class Component extends DCLogic {
   _startLoop() {
     cancelAnimationFrame(this._raf);
     const els = this._els || (this._els = {});
+    let firstFrame = true;
     const loop = () => {
       this._raf = requestAnimationFrame(loop);
       if (this.state.page !== 'home') return; // hero unmounted: skip all work
       const c = this._cur, t = this._tgt;
-      const done = Math.abs(t.x - c.x) < .0005 && Math.abs(t.y - c.y) < .0005 && Math.abs(t.p - c.p) < .0005;
+      const done = !firstFrame && Math.abs(t.x - c.x) < .0005 && Math.abs(t.y - c.y) < .0005 && Math.abs(t.p - c.p) < .0005;
+      firstFrame = false;
       if (done) return; // settled: zero writes this frame
       c.x += (t.x - c.x) * .06; c.y += (t.y - c.y) * .06; c.p += (t.p - c.p) * .14;
       const x = c.x, y = c.y, p = c.p, st = (k, prop, v) => { if (els[k]) els[k].style[prop] = v; };
