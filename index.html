@@ -173,12 +173,10 @@ a:hover{color:#f93a2f}
     </div>
   </section>
 
-  <section style="height:{{ galleryHeight }};position:relative;border-top:1px solid #1c1c1c">
-    <div style="position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center">
-      <div style="position:absolute;inset:0">
-        <img src="assets/hero-modelo1.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 20%">
-        <div style="position:absolute;inset:0;background:rgba(8,8,8,.4)"></div>
-      </div>
+  <section style="height:{{ galleryHeight }};position:relative;border-top:1px solid #1c1c1c;overflow:hidden">
+    <div ref="{{ galleryWinRef }}" style="position:absolute;top:0;left:0;width:100%;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;will-change:transform">
+      <img src="assets/hero-modelo1.jpg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 20%">
+      <div style="position:absolute;inset:0;background:rgba(8,8,8,.4)"></div>
       <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:16px;pointer-events:none">
         <span style="font-family:'Anton',sans-serif;font-size:{{ galleryBrandFs }};font-weight:400;text-transform:uppercase;letter-spacing:.06em;color:#f2efec;text-shadow:0 2px 30px rgba(0,0,0,.6)">{{ galleryBrandText }}</span>
         <span style="font-family:ui-monospace,monospace;font-size:{{ gallerySubFs }};letter-spacing:.4em;text-transform:uppercase;color:rgba(242,239,236,.5)">{{ gallerySubtitleText }}</span>
@@ -611,6 +609,18 @@ class Component extends DCLogic {
     const loop = () => {
       this._raf = requestAnimationFrame(loop);
       if (this.state.page !== 'home') return; // hero unmounted: skip all work
+      // Gallery "fixed" parallax: translate the image window by the exact
+      // inverse of its own scroll delta so it holds its screen position
+      // while the tall section scrolls underneath it (background-attachment:
+      // fixed would do this in CSS, but it's broken on iOS Safari).
+      const galWin = els.galWin;
+      if (galWin) {
+        const sec = galWin.parentElement;
+        const gr = sec.getBoundingClientRect();
+        const maxTy = Math.max(0, sec.offsetHeight - window.innerHeight);
+        const ty = Math.min(Math.max(-gr.top, 0), maxTy);
+        galWin.style.transform = 'translate3d(0,' + ty + 'px,0)';
+      }
       const c = this._cur, t = this._tgt;
       const done = Math.abs(t.x - c.x) < .0005 && Math.abs(t.y - c.y) < .0005 && Math.abs(t.p - c.p) < .0005;
       if (done) return; // settled: zero writes this frame
@@ -821,6 +831,7 @@ class Component extends DCLogic {
       s0Ref: mk('s0'), s1Ref: mk('s1'), s2Ref: mk('s2'), s3Ref: mk('s3'), s4Ref: mk('s4'), s5Ref: mk('s5'),
       f0Ref: mk('f0'), f1Ref: mk('f1'), f2Ref: mk('f2'), f3Ref: mk('f3'),
       heroCtaRef: mk('cta'), scrollIndRef: mk('scr'), bannerRef: mk('ban'),
+      galleryWinRef: mk('galWin'),
       menuOpen: s.menuOpen, toggleMenu, closeMenu,
       showBanner: settings.banner_visible !== undefined ? settings.banner_visible : (this.props.mostrarBanner ?? true),
       bannerText1: settings.banner_text_1 || 'Envíos a todo el país',
