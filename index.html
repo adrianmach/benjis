@@ -567,7 +567,6 @@ class Component extends DCLogic {
     for (let i = 0; i < im.data.length; i += 4) { const v = Math.random() * 255 | 0; im.data[i] = im.data[i+1] = im.data[i+2] = v; im.data[i+3] = 255; }
     ctx.putImageData(im, 0, 0);
     this.setState({ grain: 'url(' + c.toDataURL() + ')' });
-    this._reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this._mobile = window.innerWidth < 768;
     this.setState({ mob: this._mobile });
     this._onResize = () => { const m = window.innerWidth < 768; if (m !== this._mobile) { this._mobile = m; this.setState({ mob: m }); } };
@@ -576,12 +575,10 @@ class Component extends DCLogic {
     this._onMove = (e) => { this._tgt.x = (e.clientX / window.innerWidth - .5) * 2; this._tgt.y = (e.clientY / window.innerHeight - .5) * 2; };
     this._onScroll = () => { this._tgt.p = Math.max(0, Math.min(1, window.scrollY / (window.innerHeight * .42))); };
     this._onVis = () => { if (document.hidden) cancelAnimationFrame(this._raf); else this._startLoop(); };
-    if (!this._reduced) {
-      if (!this._mobile) window.addEventListener('mousemove', this._onMove);
-      window.addEventListener('scroll', this._onScroll, { passive: true });
-      document.addEventListener('visibilitychange', this._onVis);
-      this._startLoop();
-    }
+    if (!this._mobile) window.addEventListener('mousemove', this._onMove);
+    window.addEventListener('scroll', this._onScroll, { passive: true });
+    document.addEventListener('visibilitychange', this._onVis);
+    this._startLoop();
     this._bannerPos = 0;
     this._bannerLoop = () => {
       this._bannerPos -= .5;
