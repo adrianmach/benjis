@@ -455,7 +455,14 @@ a:hover{color:#f93a2f}
         <div style="display:flex;gap:16px;align-items:center">
           <div style="width:64px;height:80px;background:repeating-linear-gradient(45deg,#141414 0 8px,#0f0f0f 8px 16px);flex-shrink:0"></div>
           <div style="flex:1;display:flex;flex-direction:column;gap:6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase">
-            <span>{{ it.name }}</span><span style="color:#8a8782">{{ it.price }}</span>
+            <span>{{ it.name }}</span>
+            <sc-if value="{{ it.size }}" hint-placeholder-val="{{ false }}"><span style="color:#57534e;font-size:10px">Talle {{ it.size }}</span></sc-if>
+            <span style="color:#8a8782">{{ it.price }}</span>
+            <div style="display:flex;align-items:center;gap:0;border:1px solid #2c2c2c;align-self:flex-start;margin-top:2px">
+              <a href="#" onClick="{{ it.dec }}" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#8a8782" style-hover="color:#f2efec">−</a>
+              <span style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border-left:1px solid #2c2c2c;border-right:1px solid #2c2c2c">{{ it.qty }}</span>
+              <a href="#" onClick="{{ it.inc }}" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#8a8782" style-hover="color:#f2efec">+</a>
+            </div>
           </div>
           <a href="#" onClick="{{ it.remove }}" style="color:#57534e;font-size:12px" style-hover="color:#f93a2f">✕</a>
         </div>
@@ -464,7 +471,7 @@ a:hover{color:#f93a2f}
     <div style="border-top:1px solid #1c1c1c;padding-top:22px;display:flex;flex-direction:column;gap:18px">
       <div style="display:flex;justify-content:space-between;font-size:13px;letter-spacing:.16em;text-transform:uppercase"><span>Subtotal</span><span>{{ subtotal }}</span></div>
       <span style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#57534e">Envíos calculados al final</span>
-      <a href="#" style="text-align:center;background:#f2efec;color:#0b0b0b;padding:16px 0;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase" style-hover="background:#f93a2f">Finalizar compra</a>
+      <a href="#" onClick="{{ goCheckout }}" style="text-align:center;background:#f2efec;color:#0b0b0b;padding:16px 0;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase" style-hover="background:#f93a2f">Finalizar compra</a>
     </div>
   </aside>
 </sc-if>
@@ -478,6 +485,10 @@ class Component extends DCLogic {
     fetch('/api/content').then(r => r.json()).then(d => this.setState({ cmsSettings: d.settings, cmsCategories: d.categories, cmsCustomFields: d.customFields })).catch(() => {});
     fetch('/api/products').then(r => r.json()).then(d => this.setState({ cmsProducts: d })).catch(() => {});
     fetch('/api/archives').then(r => r.json()).then(d => this.setState({ cmsArchives: d })).catch(() => {});
+    try {
+      const savedCart = JSON.parse(localStorage.getItem('benjis_cart') || '[]');
+      if (Array.isArray(savedCart) && savedCart.length) this.setState({ cart: savedCart });
+    } catch (e) {}
     this._t1 = setTimeout(() => this.setState({ fading: true }), 1300);
     this._t2 = setTimeout(() => this.setState({ loading: false }), 1950);
     const c = document.createElement('canvas'); c.width = c.height = 128;
@@ -582,6 +593,9 @@ class Component extends DCLogic {
     window.removeEventListener('scroll', this._onScroll);
     document.removeEventListener('visibilitychange', this._onVis);
     window.removeEventListener('resize', this._onResize);
+  }
+  _saveCart(cart) {
+    try { localStorage.setItem('benjis_cart', JSON.stringify(cart)); } catch (e) {}
   }
   goTo(page, extra) {
     if (this.state.page === page && !extra) return;
@@ -790,15 +804,27 @@ class Component extends DCLogic {
       qty: s.qty,
       qtyInc: (e) => { e.preventDefault(); this.setState({ qty: s.qty + 1 }); },
       qtyDec: (e) => { e.preventDefault(); if (s.qty > 1) this.setState({ qty: s.qty - 1 }); },
-      addToCart: (e) => { e.preventDefault(); const items = []; for (let i = 0; i < s.qty; i++) items.push({ ...prod, size: s.selSize }); this.setState({ cart: s.cart.concat(items), cartOpen: true, qty: 1 }); },
-      cartOpen: s.cartOpen, cartEmpty: s.cart.length === 0, cartCount: s.cart.length,
-      cartItems: s.cart.map((p, i) => ({
-        name: p.name, price: p.price,
-        remove: (e) => { e.preventDefault(); this.setState({ cart: s.cart.filter((_, j) => j !== i) }); }
+      addToCart: (e) => {
+        e.preventDefault();
+        const existingIdx = s.cart.findIndex(it => it.productId === prod.id && it.size === s.selSize);
+        const cart = existingIdx >= 0
+          ? s.cart.map((it, i) => i === existingIdx ? Object.assign({}, it, { qty: it.qty + s.qty }) : it)
+          : s.cart.concat([{ productId: prod.id, name: prod.name, price: prod.price, size: s.selSize, qty: s.qty }]);
+        this._saveCart(cart);
+        this.setState({ cart, cartOpen: true, qty: 1 });
+      },
+      cartOpen: s.cartOpen, cartEmpty: s.cart.length === 0, cartCount: s.cart.reduce((n, it) => n + it.qty, 0),
+      cartItems: s.cart.map((it, i) => ({
+        name: it.name, size: it.size || '', qty: it.qty,
+        price: it.price != null ? formatPrice(it.price) : '$ X.XXX',
+        inc: (e) => { e.preventDefault(); const cart = s.cart.map((c, j) => j === i ? Object.assign({}, c, { qty: c.qty + 1 }) : c); this._saveCart(cart); this.setState({ cart }); },
+        dec: (e) => { e.preventDefault(); const cart = s.cart.map((c, j) => j === i ? Object.assign({}, c, { qty: Math.max(1, c.qty - 1) }) : c); this._saveCart(cart); this.setState({ cart }); },
+        remove: (e) => { e.preventDefault(); const cart = s.cart.filter((_, j) => j !== i); this._saveCart(cart); this.setState({ cart }); }
       })),
-      subtotal: s.cart.length ? '$ X.XXX' : '$ 0',
+      subtotal: formatPrice(s.cart.reduce((sum, it) => sum + (it.price || 0) * it.qty, 0)) || '$ 0',
       openCart: (e) => { e.preventDefault(); this.setState({ cartOpen: true }); },
       closeCart: (e) => { e.preventDefault(); this.setState({ cartOpen: false }); },
+      goCheckout: (e) => { e.preventDefault(); if (!s.cart.length) return; this.setState({ cartOpen: false }); this.goTo('checkout'); },
       archiveItems: archives.map((a, i) => ({
         title: a.title, credit: a.credit, cover: 'COVER ' + a.title, coverImage: a.cover || '',
         span: a.wide ? (m ? 'auto' : 'span 2') : 'auto',
