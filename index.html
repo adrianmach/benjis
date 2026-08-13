@@ -41,23 +41,23 @@ a:hover{color:#f93a2f}
   <div style="background:{{ accent }};overflow:hidden;height:34px;position:relative;box-shadow:0 0 18px {{ accent }},0 0 40px {{ accent }},inset 0 0 14px rgba(255,255,255,.15)">
     <div ref="{{ bannerRef }}" style="display:flex;align-items:center;height:100%;white-space:nowrap;will-change:transform">
       <span style="display:inline-flex;gap:44px;padding:0 22px;font-size:10px;font-weight:600;letter-spacing:.32em;text-transform:uppercase;color:#fff;text-shadow:0 0 6px rgba(255,255,255,.9),0 0 18px {{ accent }},0 0 40px {{ accent }}">
-        <span>Envíos a todo el país</span>
+        <span>{{ bannerText1 }}</span>
         <span style="opacity:.5">✦</span>
-        <span>Drop 01</span>
+        <span>{{ bannerText2 }}</span>
         <span style="opacity:.5">✦</span>
-        <span>Montevideo</span>
+        <span>{{ bannerText3 }}</span>
         <span style="opacity:.5">✦</span>
-        <span>Envíos a todo el país</span>
+        <span>{{ bannerText1 }}</span>
         <span style="opacity:.5">✦</span>
-        <span>Drop 01</span>
+        <span>{{ bannerText2 }}</span>
         <span style="opacity:.5">✦</span>
-        <span>Montevideo</span>
+        <span>{{ bannerText3 }}</span>
         <span style="opacity:.5">✦</span>
-        <span>Envíos a todo el país</span>
+        <span>{{ bannerText1 }}</span>
         <span style="opacity:.5">✦</span>
-        <span>Drop 01</span>
+        <span>{{ bannerText2 }}</span>
         <span style="opacity:.5">✦</span>
-        <span>Montevideo</span>
+        <span>{{ bannerText3 }}</span>
         <span style="opacity:.5">✦</span>
       </span>
     </div>
@@ -157,7 +157,8 @@ a:hover{color:#f93a2f}
       <sc-for list="{{ featured }}" as="p" hint-placeholder-count="3">
         <div onClick="{{ p.open }}" style="cursor:pointer;display:flex;flex-direction:column;gap:14px">
           <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center;position:relative;transition:transform .35s ease" style-hover="transform:translateY(-4px)">
-            <span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ p.placeholder }} ]</span>
+            <sc-if value="{{ p.image1 }}" hint-placeholder-val="{{ false }}"><img src="{{ p.image1 }}" alt="{{ p.name }}" style="width:100%;height:100%;object-fit:cover"></sc-if>
+            <sc-if value="{{ !p.image1 }}" hint-placeholder-val="{{ true }}"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ p.placeholder }} ]</span></sc-if>
             <sc-if value="{{ p.tag }}" hint-placeholder-val="{{ false }}">
               <span style="position:absolute;top:14px;left:14px;font-size:10px;font-weight:600;letter-spacing:.2em;padding:5px 10px;background:{{ accent }};color:#0b0b0b">{{ p.tag }}</span>
             </sc-if>
@@ -170,7 +171,7 @@ a:hover{color:#f93a2f}
     </div>
   </section>
 
-  <section ref="{{ gallerySecRef }}" style="height:{{ m ? '250vh' : '350vh' }};position:relative;border-top:1px solid #1c1c1c">
+  <section ref="{{ gallerySecRef }}" style="height:{{ galleryHeight }};position:relative;border-top:1px solid #1c1c1c">
     <div style="position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center">
       <div ref="{{ gImg0Ref }}" style="position:absolute;inset:0;will-change:opacity,transform;opacity:1;transition:opacity .6s ease,transform 1s ease">
         <img src="assets/hero-modelo1.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;transform:scale(1.02)">
@@ -185,29 +186,33 @@ a:hover{color:#f93a2f}
         <div style="position:absolute;inset:0;background:rgba(8,8,8,.4)"></div>
       </div>
       <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:16px;pointer-events:none">
-        <span style="font-family:'Anton',sans-serif;font-size:{{ m ? '42px' : '80px' }};font-weight:400;text-transform:uppercase;letter-spacing:.06em;color:#f2efec;text-shadow:0 2px 30px rgba(0,0,0,.6)">Benji$</span>
-        <span style="font-family:ui-monospace,monospace;font-size:{{ m ? '9px' : '11px' }};letter-spacing:.4em;text-transform:uppercase;color:rgba(242,239,236,.5)">Montevideo — Uruguay</span>
+        <span style="font-family:'Anton',sans-serif;font-size:{{ galleryBrandFs }};font-weight:400;text-transform:uppercase;letter-spacing:.06em;color:#f2efec;text-shadow:0 2px 30px rgba(0,0,0,.6)">{{ galleryBrandText }}</span>
+        <span style="font-family:ui-monospace,monospace;font-size:{{ gallerySubFs }};letter-spacing:.4em;text-transform:uppercase;color:rgba(242,239,236,.5)">{{ gallerySubtitleText }}</span>
       </div>
-      <div ref="{{ gCountRef }}" style="position:absolute;bottom:5%;right:{{ m ? '16px' : '40px' }};z-index:2;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.3em;color:#3a3a3a;text-transform:uppercase">01 / 03</div>
+      <div ref="{{ gCountRef }}" style="position:absolute;bottom:5%;right:{{ galleryCountRight }};z-index:2;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.3em;color:#3a3a3a;text-transform:uppercase">01 / 03</div>
     </div>
   </section>
 
   <section style="padding:{{ unicosPad }};border-top:1px solid #1c1c1c;display:grid;grid-template-columns:{{ twoColGrid }};gap:{{ twoColGap }};align-items:center">
     <div style="display:flex;flex-direction:column;gap:24px">
-      <h2 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ unicosTitle }};font-weight:400;line-height:.95;text-transform:uppercase">Únicos<br><span style="color:{{ accent }}">1/1</span></h2>
-      <p style="margin:0;max-width:38ch;color:#8a8782;font-size:15px;line-height:1.7">Piezas únicas hechas a partir de materiales recuperados. Una sola unidad de cada una. Cuando se va, se fue.</p>
-      <a href="#" onClick="{{ goUnicos }}" style="align-self:flex-start;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;border-bottom:1px solid {{ accent }};padding-bottom:6px" style-hover="color:#f93a2f">Ver piezas únicas</a>
+      <h2 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ unicosTitle }};font-weight:400;line-height:.95;text-transform:uppercase">{{ unicosTitle1 }}<br><span style="color:{{ accent }}">{{ unicosTitle2 }}</span></h2>
+      <p style="margin:0;max-width:38ch;color:#8a8782;font-size:15px;line-height:1.7">{{ unicosParagraph }}</p>
+      <a href="#" onClick="{{ goUnicos }}" style="align-self:flex-start;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;border-bottom:1px solid {{ accent }};padding-bottom:6px" style-hover="color:#f93a2f">{{ unicosLinkText }}</a>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-      <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ RIÑONERA 01 ]</span></div>
-      <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center;margin-top:44px"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ RIÑONERA 02 ]</span></div>
+      <sc-for list="{{ unicosItems }}" as="u" hint-placeholder-count="2">
+        <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center;margin-top:{{ u.mt }}">
+          <sc-if value="{{ u.image1 }}" hint-placeholder-val="{{ false }}"><img src="{{ u.image1 }}" alt="{{ u.name }}" style="width:100%;height:100%;object-fit:cover"></sc-if>
+          <sc-if value="{{ !u.image1 }}" hint-placeholder-val="{{ true }}"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ u.placeholder }} ]</span></sc-if>
+        </div>
+      </sc-for>
     </div>
   </section>
 
   <section style="padding:{{ ctaPad }};border-top:1px solid #1c1c1c;text-align:center;display:flex;flex-direction:column;align-items:center;gap:26px">
-    <h2 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ ctaTitle }};font-weight:400;text-transform:uppercase">¿Tenés una idea?</h2>
-    <p style="margin:0;color:#8a8782;font-size:15px;max-width:44ch;line-height:1.7">Trabajamos prendas y piezas personalizadas. Contanos qué estás buscando y lo armamos juntos.</p>
-    <a href="#" onClick="{{ goCustom }}" style="border:1px solid {{ accent }};color:{{ accent }};padding:14px 34px;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase" style-hover="background:#f93a2f;color:#0b0b0b">Enviar consulta →</a>
+    <h2 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ ctaTitle }};font-weight:400;text-transform:uppercase">{{ ctaTitleText }}</h2>
+    <p style="margin:0;color:#8a8782;font-size:15px;max-width:44ch;line-height:1.7">{{ ctaParagraphText }}</p>
+    <a href="#" onClick="{{ goCustom }}" style="border:1px solid {{ accent }};color:{{ accent }};padding:14px 34px;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase" style-hover="background:#f93a2f;color:#0b0b0b">{{ ctaButtonText }}</a>
   </section>
 </main>
 </sc-if>
@@ -224,7 +229,8 @@ a:hover{color:#f93a2f}
     <div style="position:absolute;left:50%;top:50%;display:flex;align-items:center;gap:26px;transform:translate({{ shopTx }}px,-50%);transition:transform .55s cubic-bezier(.2,.8,.2,1)">
       <sc-for list="{{ shopItems }}" as="p" hint-placeholder-count="5">
         <div onClick="{{ p.pick }}" style="height:{{ p.h }};width:{{ p.w }};opacity:{{ p.o }};flex-shrink:0;cursor:pointer;border-radius:18px;overflow:hidden;background:repeating-linear-gradient(45deg,#161616 0 12px,#101010 12px 24px);display:flex;align-items:center;justify-content:center;position:relative;transition:height .55s cubic-bezier(.2,.8,.2,1),width .55s cubic-bezier(.2,.8,.2,1),opacity .55s ease">
-          <span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ p.placeholder }} ]</span>
+          <sc-if value="{{ p.image1 }}" hint-placeholder-val="{{ false }}"><img src="{{ p.image1 }}" alt="{{ p.name }}" style="width:100%;height:100%;object-fit:cover"></sc-if>
+          <sc-if value="{{ !p.image1 }}" hint-placeholder-val="{{ true }}"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ p.placeholder }} ]</span></sc-if>
           <sc-if value="{{ p.showTag }}" hint-placeholder-val="{{ false }}">
             <span style="position:absolute;top:16px;left:16px;font-size:10px;font-weight:600;letter-spacing:.2em;padding:5px 10px;background:{{ p.tagBg }};color:{{ p.tagColor }};border:1px solid {{ p.tagBorder }}">{{ p.tag }}</span>
           </sc-if>
@@ -242,8 +248,14 @@ a:hover{color:#f93a2f}
 <sc-if value="{{ isProduct }}" hint-placeholder-val="{{ false }}">
 <main data-screen-label="Producto" style="animation:fadeUp .5s ease both;display:grid;grid-template-columns:{{ prodGrid }};gap:0;min-height:{{ prodMinH }}">
   <div style="display:flex;flex-direction:column;gap:2px">
-    <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ prod.placeholder }} — FOTO 1 ]</span></div>
-    <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ prod.placeholder }} — FOTO 2 / DETALLE ]</span></div>
+    <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center">
+      <sc-if value="{{ prod.image1 }}" hint-placeholder-val="{{ false }}"><img src="{{ prod.image1 }}" alt="{{ prod.name }}" style="width:100%;height:100%;object-fit:cover"></sc-if>
+      <sc-if value="{{ !prod.image1 }}" hint-placeholder-val="{{ true }}"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ prod.placeholder }} — FOTO 1 ]</span></sc-if>
+    </div>
+    <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center">
+      <sc-if value="{{ prod.image2 }}" hint-placeholder-val="{{ false }}"><img src="{{ prod.image2 }}" alt="{{ prod.name }}" style="width:100%;height:100%;object-fit:cover"></sc-if>
+      <sc-if value="{{ !prod.image2 }}" hint-placeholder-val="{{ true }}"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ prod.placeholder }} — FOTO 2 / DETALLE ]</span></sc-if>
+    </div>
   </div>
   <div style="padding:{{ prodInfoPad }};position:{{ prodPos }};top:{{ prodTop }};align-self:flex-start;display:flex;flex-direction:column;gap:26px">
     <a href="#" onClick="{{ goShop }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#8a8782" style-hover="color:#f93a2f">← Shop</a>
@@ -305,9 +317,12 @@ a:hover{color:#f93a2f}
 <sc-if value="{{ isCustom }}" hint-placeholder-val="{{ false }}">
 <main data-screen-label="Custom" style="animation:fadeUp .5s ease both;padding:{{ customPad }};display:grid;grid-template-columns:{{ twoColGrid }};gap:{{ customGap }}">
   <div style="display:flex;flex-direction:column;gap:28px">
-    <h1 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ customTitle }};font-weight:400;text-transform:uppercase;line-height:.95">¿Tenés<br>una idea?</h1>
-    <p style="margin:0;color:#8a8782;font-size:15px;line-height:1.75;max-width:42ch">Trabajamos prendas y piezas personalizadas: buzos, balaclavas, riñoneras y lo que se te ocurra. Contanos tu idea y te respondemos con una propuesta.</p>
-    <div style="aspect-ratio:4/3;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ FOTO PROCESO / TALLER ]</span></div>
+    <h1 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ customTitle }};font-weight:400;text-transform:uppercase;line-height:.95">{{ customTitle1 }}<br>{{ customTitle2 }}</h1>
+    <p style="margin:0;color:#8a8782;font-size:15px;line-height:1.75;max-width:42ch">{{ customParagraphText }}</p>
+    <div style="aspect-ratio:4/3;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center">
+      <sc-if value="{{ customImageUrl }}" hint-placeholder-val="{{ false }}"><img src="{{ customImageUrl }}" alt="" style="width:100%;height:100%;object-fit:cover"></sc-if>
+      <sc-if value="{{ !customImageUrl }}" hint-placeholder-val="{{ true }}"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ FOTO PROCESO / TALLER ]</span></sc-if>
+    </div>
   </div>
   <form style="display:flex;flex-direction:column;gap:26px;padding-top:14px">
     <sc-for list="{{ customFields }}" as="f" hint-placeholder-count="5">
@@ -328,38 +343,45 @@ a:hover{color:#f93a2f}
 <main data-screen-label="About" style="animation:fadeUp .5s ease both;padding:{{ aboutPad }};display:flex;flex-direction:column;gap:{{ aboutGap }};max-width:1100px;margin:0 auto">
   <div style="display:flex;flex-direction:column;gap:{{ aboutLogoGap }};align-items:center;text-align:center">
     <img src="assets/logo-wordmark.png" alt="Benji$" style="height:{{ aboutLogoH }}">
-    <p style="margin:0;font-family:'Anton',sans-serif;font-size:{{ aboutSubtitle }};line-height:1.25;text-transform:uppercase;max-width:24ch">Marca independiente hecha en Montevideo</p>
+    <p style="margin:0;font-family:'Anton',sans-serif;font-size:{{ aboutSubtitle }};line-height:1.25;text-transform:uppercase;max-width:24ch">{{ aboutSubtitleText }}</p>
   </div>
   <div style="display:grid;grid-template-columns:{{ twoColGrid }};gap:{{ aboutSecGap }};align-items:center">
-    <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ FOTO PROCESO ]</span></div>
+    <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center">
+      <sc-if value="{{ aboutProcesoImageUrl }}" hint-placeholder-val="{{ false }}"><img src="{{ aboutProcesoImageUrl }}" alt="" style="width:100%;height:100%;object-fit:cover"></sc-if>
+      <sc-if value="{{ !aboutProcesoImageUrl }}" hint-placeholder-val="{{ true }}"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ FOTO PROCESO ]</span></sc-if>
+    </div>
     <div style="display:flex;flex-direction:column;gap:20px">
-      <h2 style="margin:0;font-family:'Anton',sans-serif;font-size:40px;font-weight:400;text-transform:uppercase">Proceso</h2>
-      <p style="margin:0;color:#8a8782;font-size:15px;line-height:1.8">Cada pieza se hace a mano, en tandas chicas. [ Texto de marca — editable desde el CMS ]</p>
+      <h2 style="margin:0;font-family:'Anton',sans-serif;font-size:40px;font-weight:400;text-transform:uppercase">{{ aboutProcesoTitleText }}</h2>
+      <p style="margin:0;color:#8a8782;font-size:15px;line-height:1.8">{{ aboutProcesoParagraphText }}</p>
     </div>
   </div>
   <div style="display:grid;grid-template-columns:{{ twoColGrid }};gap:{{ aboutSecGap }};align-items:center">
     <div style="display:flex;flex-direction:column;gap:20px;{{ aboutMatOrder }}">
-      <h2 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ aboutMatTitle }};font-weight:400;text-transform:uppercase">Materiales<br>recuperados</h2>
-      <p style="margin:0;color:#8a8782;font-size:15px;line-height:1.8">Las piezas únicas nacen de materiales que ya tuvieron una vida. Por eso son 1/1. [ Editable desde el CMS ]</p>
-      <a href="#" onClick="{{ goCustom }}" style="align-self:flex-start;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;border-bottom:1px solid {{ accent }};padding-bottom:6px" style-hover="color:#f93a2f">Pedí tu custom →</a>
+      <h2 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ aboutMatTitle }};font-weight:400;text-transform:uppercase">{{ aboutMaterialesTitle1 }}<br>{{ aboutMaterialesTitle2 }}</h2>
+      <p style="margin:0;color:#8a8782;font-size:15px;line-height:1.8">{{ aboutMaterialesParagraphText }}</p>
+      <a href="#" onClick="{{ goCustom }}" style="align-self:flex-start;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;border-bottom:1px solid {{ accent }};padding-bottom:6px" style-hover="color:#f93a2f">{{ aboutMaterialesLinkText }}</a>
     </div>
-    <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ FOTO MATERIALES ]</span></div>
+    <div style="aspect-ratio:3/4;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px);display:flex;align-items:center;justify-content:center">
+      <sc-if value="{{ aboutMaterialesImageUrl }}" hint-placeholder-val="{{ false }}"><img src="{{ aboutMaterialesImageUrl }}" alt="" style="width:100%;height:100%;object-fit:cover"></sc-if>
+      <sc-if value="{{ !aboutMaterialesImageUrl }}" hint-placeholder-val="{{ true }}"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ FOTO MATERIALES ]</span></sc-if>
+    </div>
   </div>
 </main>
 </sc-if>
 
 <sc-if value="{{ isArchive }}" hint-placeholder-val="{{ false }}">
-<main data-screen-label="Archivos" style="animation:fadeUp .5s ease both;padding:{{ m ? '40px 16px 60px' : '70px 40px 100px' }}">
-  <h1 style="margin:0 0 {{ m ? '28px' : '44px' }};font-family:'Anton',sans-serif;font-size:{{ m ? '48px' : '88px' }};font-weight:400;text-transform:uppercase;line-height:1">Archivos</h1>
-  <div style="display:grid;grid-template-columns:{{ m ? '1fr' : 'repeat(4,1fr)' }};gap:{{ m ? '16px' : '12px' }};grid-auto-rows:{{ m ? '280px' : '320px' }}">
+<main data-screen-label="Archivos" style="animation:fadeUp .5s ease both;padding:{{ archivesPad }}">
+  <h1 style="margin:0 0 {{ archivesTitleMb }};font-family:'Anton',sans-serif;font-size:{{ archivesTitleFs }};font-weight:400;text-transform:uppercase;line-height:1">Archivos</h1>
+  <div style="display:grid;grid-template-columns:{{ archivesGridCols }};gap:{{ archivesGridGap }};grid-auto-rows:{{ archivesGridRowH }}">
     <sc-for list="{{ archiveItems }}" as="a" hint-placeholder-count="6">
       <div onClick="{{ a.open }}" style="cursor:pointer;position:relative;overflow:hidden;grid-column:{{ a.span }};background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px)" style-hover="transform:scale(1)">
         <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px)">
-          <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ a.cover }} ]</span>
+          <sc-if value="{{ a.coverImage }}" hint-placeholder-val="{{ false }}"><img src="{{ a.coverImage }}" alt="{{ a.title }}" style="width:100%;height:100%;object-fit:cover"></sc-if>
+          <sc-if value="{{ !a.coverImage }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ a.cover }} ]</span></sc-if>
         </div>
         <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.7) 0%,transparent 60%)"></div>
-        <div style="position:absolute;bottom:0;left:0;right:0;padding:{{ m ? '20px' : '24px' }};display:flex;flex-direction:column;gap:6px">
-          <h3 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ m ? '24px' : '28px' }};font-weight:400;text-transform:uppercase;line-height:1.1">{{ a.title }}</h3>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:{{ archiveItemPad }};display:flex;flex-direction:column;gap:6px">
+          <h3 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ archiveItemTitleFs }};font-weight:400;text-transform:uppercase;line-height:1.1">{{ a.title }}</h3>
           <span style="font-size:11px;letter-spacing:.16em;color:#8a8782">{{ a.credit }}</span>
         </div>
       </div>
@@ -369,22 +391,23 @@ a:hover{color:#f93a2f}
 </sc-if>
 
 <sc-if value="{{ isArchiveDetail }}" hint-placeholder-val="{{ false }}">
-<main data-screen-label="Archivo detalle" style="animation:fadeUp .5s ease both;padding:{{ m ? '40px 16px 60px' : '70px 40px 100px' }}">
+<main data-screen-label="Archivo detalle" style="animation:fadeUp .5s ease both;padding:{{ archivesPad }}">
   <a href="#" onClick="{{ goArchive }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#8a8782;display:block;margin-bottom:28px" style-hover="color:#f93a2f">← Archivos</a>
-  <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:{{ m ? '32px' : '50px' }}">
-    <h1 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ m ? '42px' : '72px' }};font-weight:400;text-transform:uppercase;line-height:1">{{ archDetail.title }}</h1>
+  <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:{{ archiveDetailMb }}">
+    <h1 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ archiveDetailTitleFs }};font-weight:400;text-transform:uppercase;line-height:1">{{ archDetail.title }}</h1>
     <span style="font-size:12px;letter-spacing:.18em;color:#8a8782;text-transform:uppercase">{{ archDetail.credit }}</span>
     <p style="margin:0;color:#8a8782;font-size:14px;line-height:1.75;max-width:56ch">{{ archDetail.desc }}</p>
   </div>
-  <div style="display:grid;grid-template-columns:{{ m ? '1fr 1fr' : 'repeat(3,1fr)' }};gap:{{ m ? '8px' : '12px' }};grid-auto-rows:auto">
+  <div style="display:grid;grid-template-columns:{{ archiveDetailGridCols }};gap:{{ archiveDetailGridGap }};grid-auto-rows:auto">
     <sc-for list="{{ archPhotos }}" as="ph" hint-placeholder-count="6">
       <div style="grid-column:{{ ph.span }};grid-row:{{ ph.rowSpan }};aspect-ratio:{{ ph.ratio }};position:relative;overflow:hidden;background:repeating-linear-gradient(45deg,#141414 0 12px,#0f0f0f 12px 24px)">
-        <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ ph.label }} ]</span>
+        <sc-if value="{{ ph.url }}" hint-placeholder-val="{{ false }}"><img src="{{ ph.url }}" alt="{{ ph.label }}" style="width:100%;height:100%;object-fit:cover"></sc-if>
+        <sc-if value="{{ !ph.url }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ {{ ph.label }} ]</span></sc-if>
       </div>
     </sc-for>
   </div>
   <sc-if value="{{ archDetail.text }}" hint-placeholder-val="{{ false }}">
-    <div style="margin-top:{{ m ? '32px' : '60px' }};max-width:680px">
+    <div style="margin-top:{{ archiveDetailTextMt }};max-width:680px">
       <p style="margin:0;color:#8a8782;font-size:15px;line-height:1.8">{{ archDetail.text }}</p>
     </div>
   </sc-if>
@@ -590,8 +613,11 @@ class Component extends DCLogic {
     const settings = s.cmsSettings || {};
     const accent = settings.accent_color || this.props.accent || '#F93A2F';
     const all = s.cmsProducts || this.products();
+    const formatPrice = (n) => n === null || n === undefined ? null : '$ ' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     const deco = (p, i) => ({
-      name: p.name, price: p.price, placeholder: 'FOTO ' + p.name, tag: p.tag || '', desc: p.desc || '',
+      name: p.name, price: p.price != null ? formatPrice(p.price) : (p.status === 'coming' ? '' : '$ X.XXX'),
+      placeholder: 'FOTO ' + p.name, tag: p.tag || '', desc: p.desc || '',
+      image1: (p.images && p.images[0]) || '', image2: (p.images && p.images[1]) || '',
       tagBg: p.tag === '1/1' ? accent : '#0b0b0b',
       tagColor: p.tag === '1/1' ? '#0b0b0b' : '#8a8782',
       tagBorder: p.tag === '1/1' ? accent : '#2c2c2c',
@@ -606,7 +632,7 @@ class Component extends DCLogic {
     const nav = (page) => (e) => { e.preventDefault(); this.goTo(page); };
     const catNames = ['ALL', ...(s.cmsCategories || ['BUZOS', 'BALACLAVAS', 'RIÑONERAS']), 'ÚNICOS'];
     const archives = (s.cmsArchives || this._archives()).map(a => Object.assign({}, a, {
-      photos: (a.photos || []).map(ph => typeof ph === 'string' ? ph : ph.label)
+      photos: (a.photos || []).map(ph => typeof ph === 'string' ? { url: null, label: ph } : ph)
     }));
     const els = this._els || (this._els = {});
     const mk = (k) => (el) => { els[k] = el; };
@@ -646,6 +672,23 @@ class Component extends DCLogic {
       aboutLogoH: m ? '70px' : '130px', aboutSubtitle: m ? '24px' : '34px',
       aboutSecGap: m ? '28px' : '60px', aboutMatOrder: m ? 'order:2' : '',
       aboutMatTitle: m ? '32px' : '40px',
+      galleryHeight: m ? '250vh' : '350vh',
+      galleryBrandFs: m ? '42px' : '80px',
+      gallerySubFs: m ? '9px' : '11px',
+      galleryCountRight: m ? '16px' : '40px',
+      archivesPad: m ? '40px 16px 60px' : '70px 40px 100px',
+      archivesTitleMb: m ? '28px' : '44px',
+      archivesTitleFs: m ? '48px' : '88px',
+      archivesGridCols: m ? '1fr' : 'repeat(4,1fr)',
+      archivesGridGap: m ? '16px' : '12px',
+      archivesGridRowH: m ? '280px' : '320px',
+      archiveItemPad: m ? '20px' : '24px',
+      archiveItemTitleFs: m ? '24px' : '28px',
+      archiveDetailMb: m ? '32px' : '50px',
+      archiveDetailTitleFs: m ? '42px' : '72px',
+      archiveDetailGridCols: m ? '1fr 1fr' : 'repeat(3,1fr)',
+      archiveDetailGridGap: m ? '8px' : '12px',
+      archiveDetailTextMt: m ? '32px' : '60px',
       footerPad: m ? '40px 16px 30px' : '70px 40px 40px',
       footerGap: m ? '36px' : '56px',
       footerGrid: m ? '1fr 1fr' : '2fr 1fr 1fr 1fr',
@@ -659,6 +702,31 @@ class Component extends DCLogic {
       gallerySecRef: mk('galSec'), gImg0Ref: mk('gi0'), gImg1Ref: mk('gi1'), gImg2Ref: mk('gi2'), gCountRef: mk('gCnt'),
       menuOpen: s.menuOpen, toggleMenu, closeMenu,
       showBanner: settings.banner_visible !== undefined ? settings.banner_visible : (this.props.mostrarBanner ?? true),
+      bannerText1: settings.banner_text_1 || 'Envíos a todo el país',
+      bannerText2: settings.banner_text_2 || 'Drop 01',
+      bannerText3: settings.banner_text_3 || 'Montevideo',
+      galleryBrandText: settings.gallery_brand_text || 'Benji$',
+      gallerySubtitleText: settings.gallery_subtitle_text || 'Montevideo — Uruguay',
+      unicosTitle1: settings.unicos_title_1 || 'Únicos',
+      unicosTitle2: settings.unicos_title_2 || '1/1',
+      unicosParagraph: settings.unicos_paragraph || 'Piezas únicas hechas a partir de materiales recuperados. Una sola unidad de cada una. Cuando se va, se fue.',
+      unicosLinkText: settings.unicos_link_text || 'Ver piezas únicas',
+      ctaTitleText: settings.cta_title || '¿Tenés una idea?',
+      ctaParagraphText: settings.cta_paragraph || 'Trabajamos prendas y piezas personalizadas. Contanos qué estás buscando y lo armamos juntos.',
+      ctaButtonText: settings.cta_button_text || 'Enviar consulta →',
+      customTitle1: settings.custom_title_1 || '¿Tenés',
+      customTitle2: settings.custom_title_2 || 'una idea?',
+      customParagraphText: settings.custom_paragraph || 'Trabajamos prendas y piezas personalizadas: buzos, balaclavas, riñoneras y lo que se te ocurra. Contanos tu idea y te respondemos con una propuesta.',
+      customImageUrl: settings.custom_image_url || '',
+      aboutSubtitleText: settings.about_subtitle || 'Marca independiente hecha en Montevideo',
+      aboutProcesoTitleText: settings.about_proceso_title || 'Proceso',
+      aboutProcesoParagraphText: settings.about_proceso_paragraph || 'Cada pieza se hace a mano, en tandas chicas. [ Texto de marca — editable desde el CMS ]',
+      aboutProcesoImageUrl: settings.about_proceso_image_url || '',
+      aboutMaterialesTitle1: settings.about_materiales_title_1 || 'Materiales',
+      aboutMaterialesTitle2: settings.about_materiales_title_2 || 'recuperados',
+      aboutMaterialesParagraphText: settings.about_materiales_paragraph || 'Las piezas únicas nacen de materiales que ya tuvieron una vida. Por eso son 1/1. [ Editable desde el CMS ]',
+      aboutMaterialesLinkText: settings.about_materiales_link_text || 'Pedí tu custom →',
+      aboutMaterialesImageUrl: settings.about_materiales_image_url || '',
       loading: s.loading, loaderOpacity: s.fading ? 0 : 1,
       transOpacity: s.trans ? 1 : 0,
       isHome: s.page === 'home', isShop: s.page === 'shop', isProduct: s.page === 'product',
@@ -689,6 +757,7 @@ class Component extends DCLogic {
         pick: (e) => { e.preventDefault(); this.setState({ cat: c, shopIdx: 0 }); }
       })),
       featured: (all.filter(p => p.featured).length ? all.filter(p => p.featured) : [all[0], all[1], all[6]].filter(Boolean)).slice(0, 3).map(deco),
+      unicosItems: all.filter(p => p.unique).slice(0, 2).map((p, i) => Object.assign(deco(p), { mt: i === 1 ? '44px' : '0' })),
       shopItems: filtered.map((p, i) => {
         const sel = i === idx, d = deco(p);
         const mSW = 160, mLW = 280;
@@ -706,7 +775,7 @@ class Component extends DCLogic {
       }),
       shopTx: m ? -(idx * (160 + GAP) + 280 / 2) : -(idx * (SW + GAP) + LW / 2),
       shopSelName: (filtered[idx] || {}).name || '',
-      shopSelPrice: (filtered[idx] || {}).price || '',
+      shopSelPrice: filtered[idx] ? deco(filtered[idx]).price : '',
       shopSelOpen: (e) => { e.preventDefault(); const p = filtered[idx]; if (p) this.goTo('product', { prodIdx: all.indexOf(p) }); },
       prod: deco(prod), prodBuyable: prod.status === 'published', prodComingSoon: prod.status === 'coming',
       prodSizes: (prod.sizes || []).map(sz => ({
@@ -731,7 +800,7 @@ class Component extends DCLogic {
       openCart: (e) => { e.preventDefault(); this.setState({ cartOpen: true }); },
       closeCart: (e) => { e.preventDefault(); this.setState({ cartOpen: false }); },
       archiveItems: archives.map((a, i) => ({
-        title: a.title, credit: a.credit, cover: 'COVER ' + a.title,
+        title: a.title, credit: a.credit, cover: 'COVER ' + a.title, coverImage: a.cover || '',
         span: a.wide ? (m ? 'auto' : 'span 2') : 'auto',
         open: (e) => { e.preventDefault(); this.goTo('archiveDetail', { archIdx: i }); }
       })),
@@ -748,7 +817,7 @@ class Component extends DCLogic {
           { span: m ? 'auto' : 'span 2', rowSpan: 'auto', ratio: m ? '3/4' : '16/9' },
           { span: 'auto', rowSpan: 'auto', ratio: '4/5' },
         ];
-        return a.photos.map((p, j) => Object.assign({}, layouts[j % layouts.length], { label: p }));
+        return a.photos.map((p, j) => Object.assign({}, layouts[j % layouts.length], { label: p.label, url: p.url || '' }));
       })()
     };
   }
