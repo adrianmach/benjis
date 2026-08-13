@@ -543,6 +543,14 @@ a:hover{color:#f93a2f}
 class Component extends DCLogic {
   state = { loading: true, fading: false, page: 'home', trans: false, cat: 'ALL', prodIdx: 0, uniIdx: 0, cartOpen: false, cart: [], menuOpen: false, mob: false, selSize: null, qty: 1, archIdx: 0, cmsSettings: null, cmsProducts: null, cmsArchives: null, cmsCategories: null, cmsCustomFields: null, checkoutSubmitting: false, checkoutError: '', orderStatus: null, orderRef: '', accOpen: null };
   componentDidMount() {
+    // Browsers restore the previous scroll position on reload by default
+    // (history.scrollRestoration = 'auto'). On a repeated reload-to-test
+    // workflow this silently lands the page mid-scroll instead of at the
+    // top, and since the hero's p is computed straight from window.scrollY,
+    // it renders already-open even though nothing looks "scrolled" to the
+    // person looking at it. Force a clean top on every fresh mount.
+    if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
     // --- Hero/animation init (byte-for-byte original order; only the
     // prefers-reduced-motion gate was removed) -- runs first, synchronously,
     // before anything ecommerce-related so it can never be delayed by fetches.
@@ -608,13 +616,11 @@ class Component extends DCLogic {
     cancelAnimationFrame(this._raf);
     console.log('HERO STARTED', { reducedMotion: false, rafRunning: true });
     const els = this._els || (this._els = {});
-    let firstFrame = true;
     const loop = () => {
       this._raf = requestAnimationFrame(loop);
       if (this.state.page !== 'home') return; // hero unmounted: skip all work
       const c = this._cur, t = this._tgt;
-      const done = !firstFrame && Math.abs(t.x - c.x) < .0005 && Math.abs(t.y - c.y) < .0005 && Math.abs(t.p - c.p) < .0005;
-      firstFrame = false;
+      const done = Math.abs(t.x - c.x) < .0005 && Math.abs(t.y - c.y) < .0005 && Math.abs(t.p - c.p) < .0005;
       if (done) return; // settled: zero writes this frame
       c.x += (t.x - c.x) * .06; c.y += (t.y - c.y) * .06; c.p += (t.p - c.p) * .14;
       const x = c.x, y = c.y, p = c.p, st = (k, prop, v) => { if (els[k]) els[k].style[prop] = v; };
