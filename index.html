@@ -65,10 +65,10 @@ a:hover{color:#f93a2f}
 </sc-if>
 
 <sc-if value="{{ m }}" hint-placeholder-val="{{ false }}">
-  <header style="position:sticky;top:0;z-index:80;background:rgba(11,11,11,.92);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #1c1c1c">
-    <a href="#" onClick="{{ toggleMenu }}" style="font-size:18px;line-height:1;padding:4px">☰</a>
-    <img src="assets/logo-wordmark.png" alt="Benji$" onClick="{{ goHome }}" style="height:26px;cursor:pointer">
-    <a href="#" onClick="{{ openCart }}" style="font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase" style-hover="color:#f93a2f">Bag ({{ cartCount }})</a>
+  <header style="position:sticky;top:0;z-index:80;background:rgba(11,11,11,.92);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;padding:20px 18px;border-bottom:1px solid #1c1c1c">
+    <a href="#" onClick="{{ toggleMenu }}" style="font-size:28px;line-height:1;padding:4px">☰</a>
+    <img src="assets/logo-wordmark.png" alt="Benji$" onClick="{{ goHome }}" style="height:36px;cursor:pointer">
+    <a href="#" onClick="{{ openCart }}" style="font-size:14px;font-weight:600;letter-spacing:.2em;text-transform:uppercase" style-hover="color:#f93a2f">Bag ({{ cartCount }})</a>
   </header>
   <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;inset:0;z-index:85;background:rgba(0,0,0,.7)" onClick="{{ closeMenu }}"></div>
@@ -173,25 +173,16 @@ a:hover{color:#f93a2f}
     </div>
   </section>
 
-  <section ref="{{ gallerySecRef }}" style="height:{{ galleryHeight }};position:relative;border-top:1px solid #1c1c1c">
+  <section style="height:{{ galleryHeight }};position:relative;border-top:1px solid #1c1c1c">
     <div style="position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center">
-      <div ref="{{ gImg0Ref }}" style="position:absolute;inset:0;will-change:opacity,transform;opacity:1;transition:opacity .6s ease,transform 1s ease">
-        <img src="assets/hero-modelo1.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;transform:scale(1.02)">
-        <div style="position:absolute;inset:0;background:rgba(8,8,8,.4)"></div>
-      </div>
-      <div ref="{{ gImg1Ref }}" style="position:absolute;inset:0;will-change:opacity,transform;opacity:0;transition:opacity .6s ease,transform 1s ease">
-        <img src="assets/hero-modelo2.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 15%;transform:scale(1.02)">
-        <div style="position:absolute;inset:0;background:rgba(8,8,8,.4)"></div>
-      </div>
-      <div ref="{{ gImg2Ref }}" style="position:absolute;inset:0;will-change:opacity,transform;opacity:0;transition:opacity .6s ease,transform 1s ease">
-        <img src="assets/hero-modelo3.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;transform:scale(1.02)">
+      <div style="position:absolute;inset:0">
+        <img src="assets/hero-modelo1.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 20%">
         <div style="position:absolute;inset:0;background:rgba(8,8,8,.4)"></div>
       </div>
       <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:16px;pointer-events:none">
         <span style="font-family:'Anton',sans-serif;font-size:{{ galleryBrandFs }};font-weight:400;text-transform:uppercase;letter-spacing:.06em;color:#f2efec;text-shadow:0 2px 30px rgba(0,0,0,.6)">{{ galleryBrandText }}</span>
         <span style="font-family:ui-monospace,monospace;font-size:{{ gallerySubFs }};letter-spacing:.4em;text-transform:uppercase;color:rgba(242,239,236,.5)">{{ gallerySubtitleText }}</span>
       </div>
-      <div ref="{{ gCountRef }}" style="position:absolute;bottom:5%;right:{{ galleryCountRight }};z-index:2;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.3em;color:#3a3a3a;text-transform:uppercase">01 / 03</div>
     </div>
   </section>
 
@@ -583,7 +574,7 @@ class Component extends DCLogic {
     }, 0);
     this._bannerPos = 0;
     this._bannerLoop = () => {
-      this._bannerPos -= .5;
+      this._bannerPos -= (window.innerWidth < 768 ? 1.3 : .5);
       const ban = (this._els || {}).ban;
       if (ban) {
         const w = ban.scrollWidth / 2;
@@ -647,31 +638,6 @@ class Component extends DCLogic {
       // scroll indicator fades out, CTA visible at top (assembled state)
       st('scr', 'opacity', Math.max(0, 1 - p * 4));
       st('cta', 'opacity', p < .15 ? Math.min(1, (1 - p / .15)) : 0);
-      // Gallery crossfade
-      const galSec = els.galSec;
-      if (galSec) {
-        const gr = galSec.getBoundingClientRect();
-        const gH = galSec.offsetHeight - window.innerHeight;
-        const gp = Math.min(Math.max(-gr.top / gH, 0), 1);
-        const gi = Math.min(Math.floor(gp * 3), 2);
-        const imgs = [els.gi0, els.gi1, els.gi2];
-        for (let j = 0; j < 3; j++) {
-          if (imgs[j]) {
-            const active = j === gi;
-            imgs[j].style.opacity = active ? '1' : '0';
-            imgs[j].style.transform = active ? 'scale(1)' : 'scale(1.05)';
-          }
-        }
-        if (els.gCnt) els.gCnt.textContent = '0' + (gi + 1) + ' / 03';
-        // Gallery parallax: each image shifts vertically based on scroll
-        for (let j = 0; j < 3; j++) {
-          if (imgs[j]) {
-            const pOff = (gp - j / 3) * 40; // subtle vertical shift
-            const img = imgs[j].querySelector('img');
-            if (img) img.style.transform = 'scale(1.08) translateY(' + pOff + 'px)';
-          }
-        }
-      }
     };
     this._raf = requestAnimationFrame(loop);
   }
@@ -832,7 +798,6 @@ class Component extends DCLogic {
       galleryHeight: m ? '250vh' : '350vh',
       galleryBrandFs: m ? '42px' : '80px',
       gallerySubFs: m ? '9px' : '11px',
-      galleryCountRight: m ? '16px' : '40px',
       archivesPad: m ? '40px 16px 60px' : '70px 40px 100px',
       archivesTitleMb: m ? '28px' : '44px',
       archivesTitleFs: m ? '48px' : '88px',
@@ -856,7 +821,6 @@ class Component extends DCLogic {
       s0Ref: mk('s0'), s1Ref: mk('s1'), s2Ref: mk('s2'), s3Ref: mk('s3'), s4Ref: mk('s4'), s5Ref: mk('s5'),
       f0Ref: mk('f0'), f1Ref: mk('f1'), f2Ref: mk('f2'), f3Ref: mk('f3'),
       heroCtaRef: mk('cta'), scrollIndRef: mk('scr'), bannerRef: mk('ban'),
-      gallerySecRef: mk('galSec'), gImg0Ref: mk('gi0'), gImg1Ref: mk('gi1'), gImg2Ref: mk('gi2'), gCountRef: mk('gCnt'),
       menuOpen: s.menuOpen, toggleMenu, closeMenu,
       showBanner: settings.banner_visible !== undefined ? settings.banner_visible : (this.props.mostrarBanner ?? true),
       bannerText1: settings.banner_text_1 || 'Envíos a todo el país',
