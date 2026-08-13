@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import publicRoutes from './routes/public.js';
+import { checkoutApiRouter, checkoutRedirectRouter } from './routes/checkout.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -21,6 +22,8 @@ app.use('/uploads-admin', express.static(path.join(ROOT, 'uploads-admin')));
 app.get('/support.js', (req, res) => res.sendFile(path.join(ROOT, 'support.js')));
 
 app.use('/api', publicRoutes);
+app.use('/api', checkoutApiRouter);
+app.use(checkoutRedirectRouter);
 
 app.get('/', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
 

@@ -339,6 +339,58 @@ a:hover{color:#f93a2f}
 </main>
 </sc-if>
 
+<sc-if value="{{ isCheckout }}" hint-placeholder-val="{{ false }}">
+<main data-screen-label="Checkout" style="animation:fadeUp .5s ease both;padding:{{ customPad }};display:grid;grid-template-columns:{{ twoColGrid }};gap:{{ customGap }}">
+  <div style="display:flex;flex-direction:column;gap:28px">
+    <a href="#" onClick="{{ goShop }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#8a8782" style-hover="color:#f93a2f">← Seguir comprando</a>
+    <h1 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ customTitle }};font-weight:400;text-transform:uppercase;line-height:.95">Checkout</h1>
+    <div style="display:flex;flex-direction:column;gap:16px;border-top:1px solid #1c1c1c;padding-top:22px">
+      <sc-for list="{{ checkoutItems }}" as="it" hint-placeholder-count="0">
+        <div style="display:flex;justify-content:space-between;gap:12px;font-size:13px;letter-spacing:.08em;text-transform:uppercase">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span>{{ it.name }} <span style="color:#57534e">x{{ it.qty }}</span></span>
+            <sc-if value="{{ it.size }}" hint-placeholder-val="{{ false }}"><span style="color:#57534e;font-size:10px">Talle {{ it.size }}</span></sc-if>
+          </div>
+          <span style="color:#8a8782;white-space:nowrap">{{ it.lineTotal }}</span>
+        </div>
+      </sc-for>
+      <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-top:1px solid #1c1c1c;padding-top:16px">
+        <span>Total</span><span>{{ checkoutTotal }}</span>
+      </div>
+    </div>
+  </div>
+  <form ref="{{ checkoutFormRef }}" onSubmit="{{ submitCheckout }}" style="display:flex;flex-direction:column;gap:26px;padding-top:14px">
+    <label style="display:flex;flex-direction:column;gap:10px;font-size:11px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:#8a8782">Nombre
+      <input name="name" required placeholder="Tu nombre completo" style="background:transparent;border:none;border-bottom:1px solid #2c2c2c;color:#f2efec;font-family:'Archivo',sans-serif;font-size:15px;padding:8px 0;outline:none;letter-spacing:.02em">
+    </label>
+    <label style="display:flex;flex-direction:column;gap:10px;font-size:11px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:#8a8782">Email
+      <input name="email" type="email" required placeholder="tu@email.com" style="background:transparent;border:none;border-bottom:1px solid #2c2c2c;color:#f2efec;font-family:'Archivo',sans-serif;font-size:15px;padding:8px 0;outline:none;letter-spacing:.02em">
+    </label>
+    <label style="display:flex;flex-direction:column;gap:10px;font-size:11px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:#8a8782">Teléfono
+      <input name="phone" placeholder="09x xxx xxx" style="background:transparent;border:none;border-bottom:1px solid #2c2c2c;color:#f2efec;font-family:'Archivo',sans-serif;font-size:15px;padding:8px 0;outline:none;letter-spacing:.02em">
+    </label>
+    <label style="display:flex;flex-direction:column;gap:10px;font-size:11px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:#8a8782">Dirección de envío
+      <input name="address" required placeholder="Calle, número, ciudad" style="background:transparent;border:none;border-bottom:1px solid #2c2c2c;color:#f2efec;font-family:'Archivo',sans-serif;font-size:15px;padding:8px 0;outline:none;letter-spacing:.02em">
+    </label>
+    <sc-if value="{{ checkoutError }}" hint-placeholder-val="{{ false }}">
+      <span style="color:{{ accent }};font-size:12px;letter-spacing:.06em;line-height:1.5">{{ checkoutError }}</span>
+    </sc-if>
+    <button type="submit" style="text-align:center;background:{{ accent }};color:#0b0b0b;padding:16px 0;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;border:none;cursor:pointer;font-family:'Archivo',sans-serif" style-hover="background:#f2efec">{{ checkoutSubmitLabel }}</button>
+  </form>
+</main>
+</sc-if>
+
+<sc-if value="{{ isOrderStatus }}" hint-placeholder-val="{{ false }}">
+<main data-screen-label="Estado del pedido" style="animation:fadeUp .5s ease both;padding:{{ ctaPad }};text-align:center;display:flex;flex-direction:column;align-items:center;gap:26px">
+  <h1 style="margin:0;font-family:'Anton',sans-serif;font-size:{{ ctaTitle }};font-weight:400;text-transform:uppercase">{{ orderStatusTitle }}</h1>
+  <p style="margin:0;color:#8a8782;font-size:15px;max-width:44ch;line-height:1.7">{{ orderStatusText }}</p>
+  <sc-if value="{{ orderRef }}" hint-placeholder-val="{{ false }}">
+    <span style="font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.2em;color:#57534e;text-transform:uppercase">Pedido #{{ orderRef }}</span>
+  </sc-if>
+  <a href="#" onClick="{{ goHome }}" style="border:1px solid {{ accent }};color:{{ accent }};padding:14px 34px;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase" style-hover="background:#f93a2f;color:#0b0b0b">Volver al inicio</a>
+</main>
+</sc-if>
+
 <sc-if value="{{ isAbout }}" hint-placeholder-val="{{ false }}">
 <main data-screen-label="About" style="animation:fadeUp .5s ease both;padding:{{ aboutPad }};display:flex;flex-direction:column;gap:{{ aboutGap }};max-width:1100px;margin:0 auto">
   <div style="display:flex;flex-direction:column;gap:{{ aboutLogoGap }};align-items:center;text-align:center">
@@ -480,7 +532,7 @@ a:hover{color:#f93a2f}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;: {&quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#F93A2F&quot;, &quot;options&quot;: [&quot;#F93A2F&quot;, &quot;#E7000B&quot;, &quot;#FF6B3D&quot;, &quot;#D9FF3D&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Marca&quot;}, &quot;mostrarBanner&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Marca&quot;}}">
 class Component extends DCLogic {
-  state = { loading: true, fading: false, page: 'home', trans: false, cat: 'ALL', prodIdx: 0, uniIdx: 0, cartOpen: false, cart: [], menuOpen: false, mob: false, selSize: null, qty: 1, archIdx: 0, cmsSettings: null, cmsProducts: null, cmsArchives: null, cmsCategories: null, cmsCustomFields: null };
+  state = { loading: true, fading: false, page: 'home', trans: false, cat: 'ALL', prodIdx: 0, uniIdx: 0, cartOpen: false, cart: [], menuOpen: false, mob: false, selSize: null, qty: 1, archIdx: 0, cmsSettings: null, cmsProducts: null, cmsArchives: null, cmsCategories: null, cmsCustomFields: null, checkoutSubmitting: false, checkoutError: '', orderStatus: null, orderRef: '' };
   componentDidMount() {
     fetch('/api/content').then(r => r.json()).then(d => this.setState({ cmsSettings: d.settings, cmsCategories: d.categories, cmsCustomFields: d.customFields })).catch(() => {});
     fetch('/api/products').then(r => r.json()).then(d => this.setState({ cmsProducts: d })).catch(() => {});
@@ -488,6 +540,16 @@ class Component extends DCLogic {
     try {
       const savedCart = JSON.parse(localStorage.getItem('benjis_cart') || '[]');
       if (Array.isArray(savedCart) && savedCart.length) this.setState({ cart: savedCart });
+    } catch (e) {}
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const orderParam = params.get('order');
+      if (orderParam === 'success' || orderParam === 'pending' || orderParam === 'failure') {
+        const patch = { page: 'orderStatus', orderStatus: orderParam, orderRef: params.get('ref') || '' };
+        if (orderParam === 'success') { this._saveCart([]); patch.cart = []; }
+        this.setState(patch);
+        window.history.replaceState(null, '', window.location.pathname);
+      }
     } catch (e) {}
     this._t1 = setTimeout(() => this.setState({ fading: true }), 1300);
     this._t2 = setTimeout(() => this.setState({ loading: false }), 1950);
@@ -596,6 +658,40 @@ class Component extends DCLogic {
   }
   _saveCart(cart) {
     try { localStorage.setItem('benjis_cart', JSON.stringify(cart)); } catch (e) {}
+  }
+  _submitCheckout() {
+    const s = this.state;
+    const form = (this._els || {}).checkoutForm;
+    if (!form) return;
+    const fd = new FormData(form);
+    const name = (fd.get('name') || '').toString().trim();
+    const email = (fd.get('email') || '').toString().trim();
+    const phone = (fd.get('phone') || '').toString().trim();
+    const address = (fd.get('address') || '').toString().trim();
+    if (!name || !email || !address) {
+      this.setState({ checkoutError: 'Completá nombre, email y dirección de envío.' });
+      return;
+    }
+    this.setState({ checkoutSubmitting: true, checkoutError: '' });
+    fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name, email, phone, address,
+        items: s.cart.map(it => ({ productId: it.productId, size: it.size, qty: it.qty }))
+      })
+    })
+      .then(r => r.json().then(data => ({ ok: r.ok, data })))
+      .then(({ ok, data }) => {
+        if (!ok || !data.init_point) {
+          this.setState({ checkoutSubmitting: false, checkoutError: (data && data.error) || 'No se pudo iniciar el pago. Probá de nuevo.' });
+          return;
+        }
+        window.location.href = data.init_point;
+      })
+      .catch(() => {
+        this.setState({ checkoutSubmitting: false, checkoutError: 'Error de conexión. Probá de nuevo.' });
+      });
   }
   goTo(page, extra) {
     if (this.state.page === page && !extra) return;
@@ -745,6 +841,7 @@ class Component extends DCLogic {
       transOpacity: s.trans ? 1 : 0,
       isHome: s.page === 'home', isShop: s.page === 'shop', isProduct: s.page === 'product',
       isCustom: s.page === 'custom', isAbout: s.page === 'about', isUnicos: s.page === 'unicos',
+      isCheckout: s.page === 'checkout', isOrderStatus: s.page === 'orderStatus',
       navShopColor: s.page === 'shop' || s.page === 'product' || s.page === 'unicos' ? accent : '#f2efec',
       navArchiveColor: s.page === 'archive' || s.page === 'archiveDetail' ? accent : '#f2efec',
       navCustomColor: s.page === 'custom' ? accent : '#f2efec',
@@ -825,6 +922,22 @@ class Component extends DCLogic {
       openCart: (e) => { e.preventDefault(); this.setState({ cartOpen: true }); },
       closeCart: (e) => { e.preventDefault(); this.setState({ cartOpen: false }); },
       goCheckout: (e) => { e.preventDefault(); if (!s.cart.length) return; this.setState({ cartOpen: false }); this.goTo('checkout'); },
+      checkoutItems: s.cart.map(it => ({
+        name: it.name, size: it.size || '', qty: it.qty,
+        lineTotal: it.price != null ? formatPrice(it.price * it.qty) : '$ X.XXX'
+      })),
+      checkoutTotal: formatPrice(s.cart.reduce((sum, it) => sum + (it.price || 0) * it.qty, 0)) || '$ 0',
+      checkoutFormRef: mk('checkoutForm'),
+      checkoutSubmitLabel: s.checkoutSubmitting ? 'Procesando…' : 'Pagar con MercadoPago →',
+      checkoutError: s.checkoutError || '',
+      submitCheckout: (e) => { e.preventDefault(); this._submitCheckout(); },
+      orderStatusTitle: s.orderStatus === 'success' ? '¡Pedido confirmado!' : s.orderStatus === 'pending' ? 'Pago pendiente' : 'Pago rechazado',
+      orderStatusText: s.orderStatus === 'success'
+        ? 'Tu pago fue aprobado. Te contactamos por email con los detalles del envío.'
+        : s.orderStatus === 'pending'
+        ? 'Tu pago está siendo procesado. Te avisamos por email en cuanto se confirme.'
+        : 'Tu pago fue rechazado. Podés volver a intentarlo desde el carrito.',
+      orderRef: s.orderRef || '',
       archiveItems: archives.map((a, i) => ({
         title: a.title, credit: a.credit, cover: 'COVER ' + a.title, coverImage: a.cover || '',
         span: a.wide ? (m ? 'auto' : 'span 2') : 'auto',
