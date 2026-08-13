@@ -106,16 +106,16 @@ a:hover{color:#f93a2f}
 <main data-screen-label="Home" style="animation:fadeUp .5s ease both">
   <section style="height:140vh;position:relative">
     <div style="position:sticky;top:0;height:100vh;overflow:hidden;background:#080808">
-      <div ref="{{ f0Ref }}" style="position:absolute;z-index:1;left:{{ f0Left }};top:2%;width:{{ f0W }};height:92vh;will-change:transform;overflow:hidden">
+      <div ref="{{ f0Ref }}" style="position:absolute;z-index:1;left:{{ f0Left }};top:2%;width:{{ f0W }};height:92vh;will-change:transform;overflow:hidden;opacity:0">
         <img src="assets/hero-modelo1.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 20%">
       </div>
-      <div ref="{{ f1Ref }}" style="position:absolute;z-index:1;left:{{ f1Left }};top:5%;width:{{ f1W }};height:80vh;will-change:transform;overflow:hidden">
+      <div ref="{{ f1Ref }}" style="position:absolute;z-index:1;left:{{ f1Left }};top:5%;width:{{ f1W }};height:80vh;will-change:transform;overflow:hidden;opacity:0">
         <img src="assets/hero-flatlay.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center center">
       </div>
-      <div ref="{{ f2Ref }}" style="position:absolute;z-index:1;left:{{ f2Left }};top:3%;width:{{ f2W }};height:86vh;will-change:transform;overflow:hidden">
+      <div ref="{{ f2Ref }}" style="position:absolute;z-index:1;left:{{ f2Left }};top:3%;width:{{ f2W }};height:86vh;will-change:transform;overflow:hidden;opacity:0">
         <img src="assets/hero-modelo2.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 15%">
       </div>
-      <div ref="{{ f3Ref }}" style="position:absolute;z-index:1;left:{{ f3Left }};top:6%;width:{{ f3W }};height:78vh;will-change:transform;overflow:hidden">
+      <div ref="{{ f3Ref }}" style="position:absolute;z-index:1;left:{{ f3Left }};top:6%;width:{{ f3W }};height:78vh;will-change:transform;overflow:hidden;opacity:0">
         <img src="assets/hero-modelo3.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 20%">
       </div>
       <div ref="{{ s0Ref }}" style="position:absolute;z-index:2;left:50%;top:{{ letterTop }};height:{{ letterH }};aspect-ratio:1405/773;will-change:transform;clip-path:inset(0 77.8% 0 0);pointer-events:none;transform:translateX(-50%)">
@@ -561,10 +561,16 @@ class Component extends DCLogic {
     this._onMove = (e) => { this._tgt.x = (e.clientX / window.innerWidth - .5) * 2; this._tgt.y = (e.clientY / window.innerHeight - .5) * 2; };
     this._onScroll = () => { this._tgt.p = Math.max(0, Math.min(1, window.scrollY / (window.innerHeight * .42))); };
     this._onVis = () => { if (document.hidden) cancelAnimationFrame(this._raf); else this._startLoop(); };
-    if (!this._mobile) window.addEventListener('mousemove', this._onMove);
-    window.addEventListener('scroll', this._onScroll, { passive: true });
-    document.addEventListener('visibilitychange', this._onVis);
-    this._startLoop();
+    // Defer listener registration + the animation loop by one tick so the
+    // browser paints the CSS-default resting frame (photos opacity:0,
+    // letters assembled -- baked directly into the template's inline
+    // styles above) at least once before any JS-driven mutation can happen.
+    setTimeout(() => {
+      if (!this._mobile) window.addEventListener('mousemove', this._onMove);
+      window.addEventListener('scroll', this._onScroll, { passive: true });
+      document.addEventListener('visibilitychange', this._onVis);
+      this._startLoop();
+    }, 0);
     this._bannerPos = 0;
     this._bannerLoop = () => {
       this._bannerPos -= .5;
