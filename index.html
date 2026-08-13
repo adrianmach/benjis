@@ -306,10 +306,19 @@ a:hover{color:#f93a2f}
     <sc-if value="{{ prodComingSoon }}" hint-placeholder-val="{{ false }}">
       <div style="border:1px solid #2c2c2c;padding:16px;text-align:center;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:#8a8782">Coming soon</div>
     </sc-if>
-    <div style="border-top:1px solid #1c1c1c;padding-top:22px;display:flex;flex-direction:column;gap:18px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#8a8782">
-      <span>Descripción +</span><span>Materiales +</span><span>Envíos y cambios +</span>
+    <div style="border-top:1px solid #1c1c1c;padding-top:4px;display:flex;flex-direction:column;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#8a8782">
+      <sc-for list="{{ prodAccordion }}" as="row" hint-placeholder-count="3">
+        <div style="border-bottom:1px solid #1c1c1c">
+          <a href="#" onClick="{{ row.toggle }}" style="display:flex;justify-content:space-between;align-items:center;padding:16px 0;color:#8a8782" style-hover="color:#f2efec">
+            <span>{{ row.label }}</span><span>{{ row.sign }}</span>
+          </a>
+          <sc-if value="{{ row.open }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:0 0 18px;color:#8a8782;font-size:13px;letter-spacing:.02em;text-transform:none;line-height:1.7">{{ row.content }}</p>
+          </sc-if>
+        </div>
+      </sc-for>
     </div>
-    <a href="#" style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#57534e" style-hover="color:#f93a2f">Consultar por WhatsApp →</a>
+    <a href="{{ prodWhatsappUrl }}" target="_blank" rel="noopener noreferrer" style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#57534e" style-hover="color:#f93a2f">Consultar por WhatsApp →</a>
   </div>
 </main>
 </sc-if>
@@ -324,7 +333,7 @@ a:hover{color:#f93a2f}
       <sc-if value="{{ !customImageUrl }}" hint-placeholder-val="{{ true }}"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#57534e">[ FOTO PROCESO / TALLER ]</span></sc-if>
     </div>
   </div>
-  <form style="display:flex;flex-direction:column;gap:26px;padding-top:14px">
+  <form ref="{{ customFormRef }}" onSubmit="{{ submitCustomForm }}" style="display:flex;flex-direction:column;gap:26px;padding-top:14px">
     <sc-for list="{{ customFields }}" as="f" hint-placeholder-count="5">
       <label style="display:flex;flex-direction:column;gap:10px;font-size:11px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:#8a8782">{{ f.label }}
         <input placeholder="{{ f.ph }}" style="background:transparent;border:none;border-bottom:1px solid #2c2c2c;color:#f2efec;font-family:'Archivo',sans-serif;font-size:15px;padding:8px 0;outline:none;letter-spacing:.02em">
@@ -334,7 +343,7 @@ a:hover{color:#f93a2f}
       <textarea rows="4" placeholder="Qué querés hacer, referencias, colores…" style="background:transparent;border:none;border-bottom:1px solid #2c2c2c;color:#f2efec;font-family:'Archivo',sans-serif;font-size:15px;padding:8px 0;outline:none;resize:vertical"></textarea>
     </label>
     <div style="border:1px dashed #2c2c2c;padding:26px;text-align:center;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#57534e">Adjuntar imágenes de referencia</div>
-    <a href="#" style="text-align:center;background:{{ accent }};color:#0b0b0b;padding:16px 0;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase" style-hover="background:#f2efec">Enviar consulta →</a>
+    <button type="submit" style="text-align:center;background:{{ accent }};color:#0b0b0b;padding:16px 0;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;border:none;cursor:pointer;font-family:'Archivo',sans-serif" style-hover="background:#f2efec">Enviar consulta →</button>
   </form>
 </main>
 </sc-if>
@@ -532,7 +541,7 @@ a:hover{color:#f93a2f}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;: {&quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#F93A2F&quot;, &quot;options&quot;: [&quot;#F93A2F&quot;, &quot;#E7000B&quot;, &quot;#FF6B3D&quot;, &quot;#D9FF3D&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Marca&quot;}, &quot;mostrarBanner&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Marca&quot;}}">
 class Component extends DCLogic {
-  state = { loading: true, fading: false, page: 'home', trans: false, cat: 'ALL', prodIdx: 0, uniIdx: 0, cartOpen: false, cart: [], menuOpen: false, mob: false, selSize: null, qty: 1, archIdx: 0, cmsSettings: null, cmsProducts: null, cmsArchives: null, cmsCategories: null, cmsCustomFields: null, checkoutSubmitting: false, checkoutError: '', orderStatus: null, orderRef: '' };
+  state = { loading: true, fading: false, page: 'home', trans: false, cat: 'ALL', prodIdx: 0, uniIdx: 0, cartOpen: false, cart: [], menuOpen: false, mob: false, selSize: null, qty: 1, archIdx: 0, cmsSettings: null, cmsProducts: null, cmsArchives: null, cmsCategories: null, cmsCustomFields: null, checkoutSubmitting: false, checkoutError: '', orderStatus: null, orderRef: '', accOpen: null };
   componentDidMount() {
     fetch('/api/content').then(r => r.json()).then(d => this.setState({ cmsSettings: d.settings, cmsCategories: d.categories, cmsCustomFields: d.customFields })).catch(() => {});
     fetch('/api/products').then(r => r.json()).then(d => this.setState({ cmsProducts: d })).catch(() => {});
@@ -659,6 +668,23 @@ class Component extends DCLogic {
   _saveCart(cart) {
     try { localStorage.setItem('benjis_cart', JSON.stringify(cart)); } catch (e) {}
   }
+  _submitCustomForm() {
+    const form = (this._els || {}).customForm;
+    if (!form) return;
+    const parts = [];
+    form.querySelectorAll('label').forEach(label => {
+      const field = label.querySelector('input, textarea');
+      if (!field) return;
+      const clone = label.cloneNode(true);
+      const fieldClone = clone.querySelector('input, textarea');
+      if (fieldClone) fieldClone.remove();
+      const labelText = clone.textContent.trim();
+      const val = (field.value || '').toString().trim();
+      if (val) parts.push(labelText + ': ' + val);
+    });
+    const msg = parts.length ? 'Hola! Quiero hacer una consulta de custom.\n\n' + parts.join('\n') : 'Hola! Quiero hacer una consulta de custom.';
+    window.open('https://wa.me/59892906993?text=' + encodeURIComponent(msg), '_blank', 'noopener,noreferrer');
+  }
   _submitCheckout() {
     const s = this.state;
     const form = (this._els || {}).checkoutForm;
@@ -697,7 +723,7 @@ class Component extends DCLogic {
     if (this.state.page === page && !extra) return;
     this.setState({ trans: true });
     this._t3 = setTimeout(() => {
-      this.setState(Object.assign({ page: page, selSize: null, qty: 1 }, extra || {}));
+      this.setState(Object.assign({ page: page, selSize: null, qty: 1, accOpen: null }, extra || {}));
       window.scrollTo(0, 0);
     }, 340);
     this._t4 = setTimeout(() => this.setState({ trans: false }), 720);
@@ -889,6 +915,16 @@ class Component extends DCLogic {
       shopSelPrice: filtered[idx] ? deco(filtered[idx]).price : '',
       shopSelOpen: (e) => { e.preventDefault(); const p = filtered[idx]; if (p) this.goTo('product', { prodIdx: all.indexOf(p) }); },
       prod: deco(prod), prodBuyable: prod.status === 'published', prodComingSoon: prod.status === 'coming',
+      prodWhatsappUrl: 'https://wa.me/59892906993?text=' + encodeURIComponent('Hola, consulta sobre ' + prod.name),
+      prodAccordion: [
+        { key: 'desc', label: 'Descripción', content: prod.desc || 'Sin descripción cargada.' },
+        { key: 'materials', label: 'Materiales', content: prod.materials || 'Sin información de materiales cargada.' },
+        { key: 'shipping', label: 'Envíos y cambios', content: prod.shippingReturns || 'Sin información de envíos y cambios cargada.' }
+      ].map(row => ({
+        key: row.key, label: row.label, content: row.content,
+        open: s.accOpen === row.key, sign: s.accOpen === row.key ? '−' : '+',
+        toggle: (e) => { e.preventDefault(); this.setState({ accOpen: s.accOpen === row.key ? null : row.key }); }
+      })),
       prodSizes: (prod.sizes || []).map(sz => ({
         label: sz,
         sel: s.selSize === sz,
@@ -928,6 +964,8 @@ class Component extends DCLogic {
       })),
       checkoutTotal: formatPrice(s.cart.reduce((sum, it) => sum + (it.price || 0) * it.qty, 0)) || '$ 0',
       checkoutFormRef: mk('checkoutForm'),
+      customFormRef: mk('customForm'),
+      submitCustomForm: (e) => { e.preventDefault(); this._submitCustomForm(); },
       checkoutSubmitLabel: s.checkoutSubmitting ? 'Procesando…' : 'Pagar con MercadoPago →',
       checkoutError: s.checkoutError || '',
       submitCheckout: (e) => { e.preventDefault(); this._submitCheckout(); },
