@@ -543,23 +543,9 @@ a:hover{color:#f93a2f}
 class Component extends DCLogic {
   state = { loading: true, fading: false, page: 'home', trans: false, cat: 'ALL', prodIdx: 0, uniIdx: 0, cartOpen: false, cart: [], menuOpen: false, mob: false, selSize: null, qty: 1, archIdx: 0, cmsSettings: null, cmsProducts: null, cmsArchives: null, cmsCategories: null, cmsCustomFields: null, checkoutSubmitting: false, checkoutError: '', orderStatus: null, orderRef: '', accOpen: null };
   componentDidMount() {
-    fetch('/api/content').then(r => r.json()).then(d => this.setState({ cmsSettings: d.settings, cmsCategories: d.categories, cmsCustomFields: d.customFields })).catch(() => {});
-    fetch('/api/products').then(r => r.json()).then(d => this.setState({ cmsProducts: d })).catch(() => {});
-    fetch('/api/archives').then(r => r.json()).then(d => this.setState({ cmsArchives: d })).catch(() => {});
-    try {
-      const savedCart = JSON.parse(localStorage.getItem('benjis_cart') || '[]');
-      if (Array.isArray(savedCart) && savedCart.length) this.setState({ cart: savedCart });
-    } catch (e) {}
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const orderParam = params.get('order');
-      if (orderParam === 'success' || orderParam === 'pending' || orderParam === 'failure') {
-        const patch = { page: 'orderStatus', orderStatus: orderParam, orderRef: params.get('ref') || '' };
-        if (orderParam === 'success') { this._saveCart([]); patch.cart = []; }
-        this.setState(patch);
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-    } catch (e) {}
+    // --- Hero/animation init (byte-for-byte original order; only the
+    // prefers-reduced-motion gate was removed) -- runs first, synchronously,
+    // before anything ecommerce-related so it can never be delayed by fetches.
     this._t1 = setTimeout(() => this.setState({ fading: true }), 1300);
     this._t2 = setTimeout(() => this.setState({ loading: false }), 1950);
     const c = document.createElement('canvas'); c.width = c.height = 128;
@@ -591,9 +577,30 @@ class Component extends DCLogic {
       this._banRaf = requestAnimationFrame(this._bannerLoop);
     };
     this._banRaf = requestAnimationFrame(this._bannerLoop);
+
+    // --- Ecommerce init: fetches are async/non-blocking and run after the
+    // hero is already animating; they cannot delay anything above.
+    fetch('/api/content').then(r => r.json()).then(d => this.setState({ cmsSettings: d.settings, cmsCategories: d.categories, cmsCustomFields: d.customFields })).catch(() => {});
+    fetch('/api/products').then(r => r.json()).then(d => this.setState({ cmsProducts: d })).catch(() => {});
+    fetch('/api/archives').then(r => r.json()).then(d => this.setState({ cmsArchives: d })).catch(() => {});
+    try {
+      const savedCart = JSON.parse(localStorage.getItem('benjis_cart') || '[]');
+      if (Array.isArray(savedCart) && savedCart.length) this.setState({ cart: savedCart });
+    } catch (e) {}
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const orderParam = params.get('order');
+      if (orderParam === 'success' || orderParam === 'pending' || orderParam === 'failure') {
+        const patch = { page: 'orderStatus', orderStatus: orderParam, orderRef: params.get('ref') || '' };
+        if (orderParam === 'success') { this._saveCart([]); patch.cart = []; }
+        this.setState(patch);
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    } catch (e) {}
   }
   _startLoop() {
     cancelAnimationFrame(this._raf);
+    console.log('HERO STARTED', { reducedMotion: false, rafRunning: true });
     const els = this._els || (this._els = {});
     let firstFrame = true;
     const loop = () => {
