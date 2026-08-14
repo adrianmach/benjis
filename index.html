@@ -172,6 +172,11 @@ button{font:inherit}
 .shop-cats a{padding-bottom:6px;white-space:nowrap;border-bottom:2px solid transparent}
 .shop-carousel{height:66vh;position:relative;overflow:hidden;margin:0 -40px}
 @media (max-width:768px){.shop-carousel{height:52vh;margin:0 -16px}}
+.carousel-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:rgba(11,11,11,.55);border:1px solid var(--line2);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;z-index:2;backdrop-filter:blur(4px)}
+.carousel-nav:hover{border-color:var(--accent);color:var(--accent)}
+.carousel-nav:disabled{opacity:.3;cursor:default;pointer-events:none}
+.carousel-nav.prev{left:16px}
+.carousel-nav.next{right:16px}
 .carousel-track{position:absolute;left:50%;top:50%;display:flex;align-items:center;gap:26px;transition:transform .55s cubic-bezier(.2,.8,.2,1)}
 .carousel-item{flex-shrink:0;cursor:pointer;border-radius:18px;overflow:hidden;background:repeating-linear-gradient(45deg,#161616 0 12px,#101010 12px 24px);display:flex;align-items:center;justify-content:center;position:relative;transition:height .55s cubic-bezier(.2,.8,.2,1),width .55s cubic-bezier(.2,.8,.2,1),opacity .55s ease}
 .carousel-item img{width:100%;height:100%;object-fit:cover}
@@ -739,7 +744,9 @@ function renderShop() {
     <h1>${esc(state.cat === 'ALL' ? 'Shop' : state.cat.toLowerCase())}</h1>
     <div class="shop-cats" id="shop-cats">${cats}</div>
     <div class="shop-carousel">
+      <button class="carousel-nav prev" data-action="shopPrev" aria-label="Producto anterior" ${idx <= 0 ? 'disabled' : ''}>←</button>
       <div class="carousel-track" id="carousel-track">${items}</div>
+      <button class="carousel-nav next" data-action="shopNext" aria-label="Producto siguiente" ${idx >= filtered.length - 1 ? 'disabled' : ''}>→</button>
     </div>
     <div class="shop-selected" id="shop-selected">
       ${selDeco ? `<span class="name">${esc(selDeco.name)} <span class="price">— ${esc(selDeco.price)}</span></span>
@@ -799,6 +806,10 @@ function updateShopSelection() {
       selBox.innerHTML = '';
     }
   }
+  const prevBtn = document.querySelector('.carousel-nav.prev');
+  const nextBtn = document.querySelector('.carousel-nav.next');
+  if (prevBtn) prevBtn.disabled = idx <= 0;
+  if (nextBtn) nextBtn.disabled = idx >= filtered.length - 1;
 }
 
 /* ---- product ---- */
@@ -1209,7 +1220,7 @@ function initHero() {
 
 let bannerPos = 0;
 function bannerLoop() {
-  bannerPos -= (isMobile() ? 1.3 : .5);
+  bannerPos -= (isMobile() ? 2.6 : 1);
   const track = document.getElementById('marquee-track');
   if (track) {
     const w = track.scrollWidth / 2;
@@ -1259,6 +1270,15 @@ document.addEventListener('click', (e) => {
         state.shopIdx = i;
         updateShopSelection();
       }
+      break;
+    }
+    case 'shopPrev': {
+      if (state.shopIdx > 0) { state.shopIdx -= 1; updateShopSelection(); }
+      break;
+    }
+    case 'shopNext': {
+      const filtered = shopFiltered();
+      if (state.shopIdx < filtered.length - 1) { state.shopIdx += 1; updateShopSelection(); }
       break;
     }
     case 'toggleAccordion': {
