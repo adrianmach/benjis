@@ -19,6 +19,7 @@ button{font:inherit}
 
 @keyframes bIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
 
 /* ---------- overlays ---------- */
@@ -61,7 +62,7 @@ button{font:inherit}
 }
 
 /* ---------- hero ---------- */
-.hero-section{height:140vh;position:relative}
+.hero-section{height:140vh;position:relative;z-index:1;background:var(--bg)}
 .hero-sticky{position:sticky;top:0;height:100vh;overflow:hidden;background:#080808}
 .hero-photo{position:absolute;z-index:1;top:2%;will-change:transform;overflow:hidden;opacity:0}
 .hero-photo img{width:100%;height:100%;object-fit:cover}
@@ -109,7 +110,7 @@ button{font:inherit}
 .hero-grain{position:absolute;inset:0;pointer-events:none;opacity:.04}
 
 /* ---------- drop 01 ---------- */
-.drop-section{padding:110px 40px 90px}
+.drop-section{padding:110px 40px 90px;position:relative;z-index:1;background:var(--bg)}
 @media (max-width:768px){.drop-section{padding:60px 16px 60px}}
 .drop-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:44px}
 @media (max-width:768px){.drop-header{margin-bottom:28px}}
@@ -129,9 +130,8 @@ button{font:inherit}
 .card-info span:last-child{color:var(--muted)}
 
 /* ---------- gallery ---------- */
-.gallery-section{height:200vh;position:relative;border-top:1px solid var(--line);overflow:hidden}
-.gallery-window{position:absolute;top:0;left:0;width:100%;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;will-change:transform}
-.gallery-window img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 20%}
+.gallery-fixed-img{position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:cover;object-position:center 20%;z-index:0}
+.gallery-spacer{position:relative;height:100vh;z-index:1;background:transparent;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center}
 .gallery-scrim{position:absolute;inset:0;background:rgba(8,8,8,.4)}
 .gallery-text{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:16px;pointer-events:none}
 .gallery-text .brand{font-family:'Anton',sans-serif;font-size:80px;font-weight:400;text-transform:uppercase;letter-spacing:.06em;color:var(--fg);text-shadow:0 2px 30px rgba(0,0,0,.6)}
@@ -142,7 +142,7 @@ button{font:inherit}
 }
 
 /* ---------- unicos ---------- */
-.unicos-section{padding:100px 40px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.unicos-section{padding:100px 40px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;z-index:1;background:var(--bg)}
 @media (max-width:768px){.unicos-section{padding:60px 16px;grid-template-columns:1fr;gap:32px}}
 .unicos-copy{display:flex;flex-direction:column;gap:24px}
 .unicos-copy h2{margin:0;font-family:'Anton',sans-serif;font-size:72px;font-weight:400;line-height:.95;text-transform:uppercase}
@@ -154,7 +154,7 @@ button{font:inherit}
 .unicos-grid .media-box:nth-child(2){margin-top:44px}
 
 /* ---------- cta ---------- */
-.cta-section{padding:130px 40px;border-top:1px solid var(--line);text-align:center;display:flex;flex-direction:column;align-items:center;gap:26px}
+.cta-section{padding:130px 40px;border-top:1px solid var(--line);text-align:center;display:flex;flex-direction:column;align-items:center;gap:26px;position:relative;z-index:1;background:var(--bg)}
 @media (max-width:768px){.cta-section{padding:70px 16px}}
 .cta-section h2{margin:0;font-family:'Anton',sans-serif;font-size:64px;font-weight:400;text-transform:uppercase}
 @media (max-width:768px){.cta-section h2{font-size:40px}}
@@ -304,7 +304,7 @@ button{font:inherit}
 .archive-detail-text p{margin:0;color:var(--muted);font-size:15px;line-height:1.8}
 
 /* ---------- footer ---------- */
-.site-footer{border-top:1px solid var(--line);padding:70px 40px 40px;display:flex;flex-direction:column;gap:56px}
+.site-footer{border-top:1px solid var(--line);padding:70px 40px 40px;display:flex;flex-direction:column;gap:56px;position:relative;z-index:1;background:var(--bg)}
 @media (max-width:768px){.site-footer{padding:40px 16px 30px;gap:36px}}
 .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px}
 @media (max-width:768px){.footer-grid{grid-template-columns:1fr 1fr;gap:24px}}
@@ -313,7 +313,7 @@ button{font:inherit}
 .footer-col .head{color:var(--dim)}
 .footer-bottom{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
 
-#page{animation:fadeUp .5s ease both}
+#page{animation:fadeIn .5s ease both}
 
 /* ---------- cart ---------- */
 .cart-overlay{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.6);display:none}
@@ -687,16 +687,14 @@ function renderHome() {
       <div class="drop-grid" id="drop-grid">${dropCards}</div>
     </section>
 
-    <section class="gallery-section">
-      <div class="gallery-window" id="gallery-win">
-        <img src="assets/hero-modelo1.jpg" alt="">
-        <div class="gallery-scrim"></div>
-        <div class="gallery-text">
-          <span class="brand" id="gallery-brand">${esc(settingsVal('gallery_brand_text', 'Benji$'))}</span>
-          <span class="sub" id="gallery-sub">${esc(settingsVal('gallery_subtitle_text', 'Montevideo — Uruguay'))}</span>
-        </div>
+    <img class="gallery-fixed-img" src="assets/hero-modelo1.jpg" alt="">
+    <div class="gallery-spacer">
+      <div class="gallery-scrim"></div>
+      <div class="gallery-text">
+        <span class="brand" id="gallery-brand">${esc(settingsVal('gallery_brand_text', 'Benji$'))}</span>
+        <span class="sub" id="gallery-sub">${esc(settingsVal('gallery_subtitle_text', 'Montevideo — Uruguay'))}</span>
       </div>
-    </section>
+    </div>
 
     <section class="unicos-section">
       <div class="unicos-copy">
@@ -1169,15 +1167,6 @@ function heroEl(id) { return document.getElementById(id); }
 function heroLoop() {
   heroRaf = requestAnimationFrame(heroLoop);
   if (state.page !== 'home') return;
-
-  const galWin = heroEl('gallery-win');
-  if (galWin) {
-    const sec = galWin.parentElement;
-    const gr = sec.getBoundingClientRect();
-    const maxTy = Math.max(0, sec.offsetHeight - window.innerHeight);
-    const ty = Math.min(Math.max(-gr.top, 0), maxTy);
-    galWin.style.transform = 'translate3d(0,' + ty + 'px,0)';
-  }
 
   const c = heroCur, t = heroTgt;
   const done = Math.abs(t.x - c.x) < .0005 && Math.abs(t.y - c.y) < .0005 && Math.abs(t.p - c.p) < .0005;
