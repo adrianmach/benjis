@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch server/index.js",
-    "build": "node server/db.js",
+    "build": "node server/build.js",
     "start": "node server/index.js"
   },
   "engines": {
     "node": ">=22.5.0"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-session": "^1.18.1",

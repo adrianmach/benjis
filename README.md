@@ -1,6 +1,6 @@
 # Benji$ — ecommerce + panel admin
 
-Sitio de Benji$ (marca de ropa independiente, Montevideo) convertido de un export estático de Claude Design a un ecommerce funcional: backend Express + SQLite, carrito con checkout vía MercadoPago, y un panel `/admin` para editar todo el contenido del sitio sin tocar código.
+Sitio de Benji$ (marca de ropa independiente, Montevideo) convertido de un export estático de Claude Design a un ecommerce funcional: backend Express + Supabase (Postgres + Storage), carrito con checkout vía MercadoPago, y un panel `/admin` para editar todo el contenido del sitio sin tocar código.
 
 El frontend público (`index.html` + `support.js`) **no se reescribió**: sigue siendo el mismo sistema de templates (`{{ }}`, `sc-if`, `sc-for`) que ya traía el export. Lo único que cambió es de dónde vienen los datos — antes hardcodeados en el script, ahora vienen de la API (`/api/content`, `/api/products`, `/api/archives`), con esos mismos valores hardcodeados como fallback si la API no responde.
 
@@ -11,21 +11,24 @@ index.html          Sitio público (template + lógica del componente)
 support.js           Runtime que interpreta el template (no se toca)
 assets/              Imágenes de marca + las 4 fotos fijas del hero/galería
 uploads/              Carpeta legacy del export original (no referenciada)
-uploads-admin/        Imágenes subidas desde el admin (gitignored)
-data/                 Base de datos SQLite (gitignored)
+uploads-admin/        Legacy: destino local de uploads antes de Supabase Storage (gitignored, ya no se escribe)
+
+supabase/
+  schema.sql           Tablas (prefijo benjis_), triggers de updated_at y seed data. Correr una vez en el SQL Editor de Supabase.
 
 server/
   index.js            App de Express: monta estáticos, rutas, sesión
-  db.js               Schema + seed de SQLite (node:sqlite, sin dependencias nativas)
-  auth.js             Login por sesión del admin
+  supabase.js          Cliente de Supabase (service role) + helpers de Storage (uploadImage/deleteImageByUrl)
+  auth.js               Login por sesión del admin
   lib/
-    format.js          formatPrice() compartido
-    mercadopago.js      Wrapper del SDK de MercadoPago
-    upload.js           Helpers de multer (slots fijos + uploads genéricos)
+    settings.js          Claves válidas de benjis_content + cuáles son booleanas
+    format.js             formatPrice() compartido
+    mercadopago.js         Wrapper del SDK de MercadoPago
+    upload.js              Helpers de multer (memoria) + runUpload()
   routes/
-    public.js           GET /api/content, /api/products, /api/archives
-    checkout.js          POST /api/checkout, webhook, redirects de vuelta de MP
-    admin.js             CRUD completo detrás de /api/admin (protegido)
+    public.js            GET /api/content, /api/products, /api/archives
+    checkout.js           POST /api/checkout, webhook, redirects de vuelta de MP
+    admin.js              CRUD completo detrás de /api/admin (protegido)
 
 admin/
   index.html, admin.css, admin.js   Panel admin (HTML/CSS/JS plano, sin build)
@@ -33,7 +36,21 @@ admin/
 
 ## Setup
 
-Requiere Node.js **22.5 o superior** (usa el módulo nativo `node:sqlite`, sin dependencias nativas que compilar — no hace falta Python ni build tools).
+Requiere Node.js **22.5 o superior**, y un proyecto de [Supabase](https://supabase.com) (puede ser compartido con otros proyectos — todas las tablas usan el prefijo `benjis_`).
+
+### 1. Crear las tablas en Supabase
+
+Abrí el **SQL Editor** del proyecto de Supabase y corré el contenido de [`supabase/schema.sql`](supabase/schema.sql) completo. Crea las 5 tablas (`benjis_content`, `benjis_categories`, `benjis_products`, `benjis_archives`, `benjis_orders`), sus triggers de `updated_at`, habilita RLS sin policies (solo la service key, que bypassea RLS, puede leer/escribir) y carga el contenido/productos/categorías/archivos originales del sitio como seed. Es idempotente — correrlo de nuevo no duplica filas ni pisa ediciones hechas desde `/admin`.
+
+### 2. Crear el bucket de Storage
+
+En **Storage**, crear (o confirmar que ya existe) un bucket público llamado **`benjis`**. Ahí se suben todas las imágenes que se cargan desde el admin (productos, archivos, about, custom, galería). Las 4 fotos fijas del hero (`assets/hero-*.jpg|png`) son la única excepción: siguen viviendo en el repo porque `index.html` hardcodea esos paths.
+
+### 3. Conseguir las credenciales
+
+En **Project Settings → API** copiar la **URL** del proyecto y la **service_role key** (no la `anon` key — el backend necesita bypassear RLS).
+
+### 4. Instalar y correr
 
 ```bash
 npm install
@@ -49,7 +66,7 @@ Abrí `http://localhost:3000` para el sitio y `http://localhost:3000/admin` para
 | Script | Qué hace |
 |---|---|
 | `npm run dev` | Levanta el servidor con `--watch` (reinicia solo al guardar) |
-| `npm run build` | Crea/migra/siembra la base de datos si no existe (útil en deploy, es idempotente) |
+| `npm run build` | Valida que las variables de entorno necesarias estén configuradas (útil antes de un deploy) |
 | `npm start` | Levanta el servidor en modo normal |
 
 ## Variables de entorno (`.env`)
@@ -62,6 +79,8 @@ Abrí `http://localhost:3000` para el sitio y `http://localhost:3000/admin` para
 | `SESSION_SECRET` | Secreto para firmar la cookie de sesión del admin. Generar uno random, por ejemplo `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `MERCADOPAGO_ACCESS_TOKEN` | Access token de MercadoPago (ver abajo) |
 | `MERCADOPAGO_WEBHOOK_SECRET` | Secreto de firma del webhook (opcional pero recomendado, ver abajo) |
+| `SUPABASE_URL` | URL del proyecto de Supabase (Project Settings → API) |
+| `SUPABASE_SERVICE_KEY` | Service role key del proyecto (**no** la `anon` key — necesita bypassear RLS para que el backend pueda leer/escribir) |
 
 ## MercadoPago
 
@@ -103,9 +122,11 @@ Notas sobre el comportamiento:
 
 ## Deploy
 
-1. `npm install --omit=dev`
-2. Completar `.env` con las variables de producción (`PUBLIC_BASE_URL` real, credenciales de MercadoPago de producción, `ADMIN_PASS` fuerte).
-3. `npm run build` (crea la base de datos si no existe).
-4. `npm start`, detrás de un proxy con HTTPS.
+1. Correr `supabase/schema.sql` en el proyecto de Supabase de producción (una sola vez; ver Setup arriba).
+2. Crear el bucket público `benjis` en Supabase Storage si todavía no existe.
+3. `npm install --omit=dev`
+4. Completar `.env` con las variables de producción (`PUBLIC_BASE_URL` real, credenciales de MercadoPago de producción, `ADMIN_PASS` fuerte, `SUPABASE_URL`/`SUPABASE_SERVICE_KEY`).
+5. `npm run build` (valida que estén todas las variables de entorno).
+6. `npm start`, detrás de un proxy con HTTPS.
 
-La base de datos vive en `data/benjis.sqlite` — hacer backup de ese archivo (y de `uploads-admin/`) antes de cualquier actualización del código.
+Los datos (contenido, productos, pedidos, archivos) y las imágenes viven en Supabase — no hay nada que respaldar a mano en el servidor de la app.

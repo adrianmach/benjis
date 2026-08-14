@@ -1,65 +1,51 @@
-// Upload helpers for the admin panel.
-//
-// Two flavors:
-//  - heroUpload: memory storage for the 4 fixed hero/gallery image slots.
-//    The route decides the exact on-disk filename (must match what
-//    index.html hardcodes) and overwrites it in place.
-//  - genericUpload(subdir): disk storage under uploads-admin/<subdir>/
-//    with a random filename, used for anything the DB stores a URL for
-//    (products, about, custom, archives).
+// Upload helpers para el panel admin. Todo usa memoryStorage (no se escribe
+// a disco excepto los slots fijos del hero, que la ruta escribe en assets/
+// a mano) porque el resto de las imágenes se sube a Supabase Storage --
+// ver server/supabase.js.
 
 import multer from 'multer';
-import crypto from 'node:crypto';
 import path from 'node:path';
-import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.join(__dirname, '..', '..');
 
-const ALLOWED_MIME = {
-  'image/jpeg': '.jpg',
-  'image/png': '.png',
-  'image/webp': '.webp',
-  'image/gif': '.gif'
-};
+const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 function imageFileFilter(req, file, cb) {
-  if (ALLOWED_MIME[file.mimetype]) return cb(null, true);
+  if (ALLOWED_MIME.has(file.mimetype)) return cb(null, true);
   cb(new Error('Tipo de archivo no permitido. Usá JPG, PNG, WEBP o GIF.'));
 }
 
+// Los 4 slots fijos del hero/galería: la ruta decide el nombre exacto de
+// archivo (debe coincidir con lo que hardcodea index.html) y lo sobreescribe
+// en assets/.
 export const heroUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: imageFileFilter
 }).single('image');
 
-export function genericUpload(subdir) {
-  const dest = path.join(ROOT, 'uploads-admin', subdir);
-  fs.mkdirSync(dest, { recursive: true });
-  const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, dest),
-    filename: (req, file, cb) => cb(null, crypto.randomUUID() + (ALLOWED_MIME[file.mimetype] || ''))
+// Todo lo demás: la ruta sube el buffer a Supabase Storage y guarda la URL
+// pública en la base.
+export const imageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: imageFileFilter
+}).single('image');
+
+// Corre un middleware de multer y devuelve una promesa: true si se puede
+// seguir (req.file ya está disponible), false si multer falló y ya mandó
+// la respuesta 400 -- el caller solo tiene que hacer `if (!ok) return;`.
+export function runUpload(mw, req, res) {
+  return new Promise((resolve) => {
+    mw(req, res, (err) => {
+      if (err) {
+        res.status(400).json({ error: err.message || 'No se pudo procesar el archivo.' });
+        resolve(false);
+      } else {
+        resolve(true);
+      }
+    });
   });
-  return multer({
-    storage,
-    limits: { fileSize: 10 * 1024 * 1024 },
-    fileFilter: imageFileFilter
-  }).single('image');
-}
-
-export function publicUrlFor(subdir, filename) {
-  return `/uploads-admin/${subdir}/${filename}`;
-}
-
-// Deletes a previously uploaded file given its public URL, but only if it
-// actually lives under uploads-admin/ -- guards against a stray absolute
-// path or an /assets/ URL ever reaching here and getting unlinked.
-export function deleteUploadedFile(url) {
-  if (!url || typeof url !== 'string' || !url.startsWith('/uploads-admin/')) return;
-  const rel = url.replace(/^\/+/, '');
-  const abs = path.join(ROOT, rel);
-  if (!abs.startsWith(path.join(ROOT, 'uploads-admin'))) return; // path traversal guard
-  fs.unlink(abs, () => {}); // best-effort, ignore ENOENT etc.
 }

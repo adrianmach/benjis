@@ -3,8 +3,6 @@ dist
 .DS_Store
 
 .env
-data/*.sqlite
-data/*.sqlite-journal
 uploads-admin/*
 !uploads-admin/.gitkeep
 !uploads-admin/**/.gitkeep

@@ -1,51 +1,54 @@
-// Protected admin API. Mounted at /api/admin behind requireAdmin
-// (see server/index.js) -- every route in this file assumes the caller
-// is already authenticated.
+// API admin protegida. Montada en /api/admin detrás de requireAdmin (ver
+// server/index.js) -- todas las rutas de este archivo asumen que quien
+// llama ya está autenticado.
 
 import { Router } from 'express';
 import path from 'node:path';
 import fs from 'node:fs';
-import { getDb, SETTINGS_KEYS } from '../db.js';
-import { heroUpload, genericUpload, publicUrlFor, deleteUploadedFile, ROOT } from '../lib/upload.js';
+import crypto from 'node:crypto';
+import { supabase, uploadImage, deleteImageByUrl } from '../supabase.js';
+import { heroUpload, imageUpload, runUpload, ROOT } from '../lib/upload.js';
+import { SETTINGS_KEYS, BOOLEAN_SETTINGS } from '../lib/settings.js';
 
 const router = Router();
 
-const BOOLEAN_SETTINGS = new Set(['banner_visible']);
-
-function multerErrorHandler(uploadMiddleware) {
-  return (req, res, next) => {
-    uploadMiddleware(req, res, (err) => {
-      if (err) return res.status(400).json({ error: err.message || 'No se pudo procesar el archivo.' });
-      next();
+// Envuelve un handler async: si la promesa rechaza, responde 500 en vez de
+// dejar el rechazo sin manejar (Express 4 no hace esto solo).
+function ah(fn) {
+  return (req, res) => {
+    fn(req, res).catch((err) => {
+      console.error(err);
+      if (!res.headersSent) res.status(500).json({ error: err.message || 'Error interno.' });
     });
   };
 }
 
 // ---------------------------------------------------------------- settings
 
-router.get('/settings', (req, res) => {
-  const db = getDb();
-  const rows = db.prepare('SELECT key, value FROM settings').all();
+router.get('/settings', ah(async (req, res) => {
+  const { data, error } = await supabase.from('benjis_content').select('key, value').neq('key', 'custom_form_fields');
+  if (error) throw error;
   const out = {};
-  for (const row of rows) out[row.key] = BOOLEAN_SETTINGS.has(row.key) ? row.value === 'true' : row.value;
+  for (const row of data) out[row.key] = BOOLEAN_SETTINGS.has(row.key) ? row.value === 'true' : row.value;
   res.json(out);
-});
+}));
 
-router.put('/settings', (req, res) => {
+router.put('/settings', ah(async (req, res) => {
   const body = req.body || {};
-  const db = getDb();
-  const stmt = db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)
-    ON CONFLICT(key) DO UPDATE SET value = excluded.value`);
   const validKeys = new Set(SETTINGS_KEYS);
   const applied = {};
+  const rows = [];
   for (const [key, value] of Object.entries(body)) {
     if (!validKeys.has(key)) continue;
-    const stored = typeof value === 'boolean' ? String(value) : String(value ?? '');
-    stmt.run(key, stored);
+    rows.push({ key, value: typeof value === 'boolean' ? String(value) : String(value ?? '') });
     applied[key] = value;
   }
+  if (rows.length) {
+    const { error } = await supabase.from('benjis_content').upsert(rows);
+    if (error) throw error;
+  }
   res.json({ ok: true, applied });
-});
+}));
 
 // ---------------------------------------------- hero / gallery (fixed slots)
 
@@ -63,9 +66,10 @@ router.get('/hero-slots', (req, res) => {
   res.json(out);
 });
 
-router.post('/media/hero/:slot', multerErrorHandler(heroUpload), (req, res) => {
+router.post('/media/hero/:slot', ah(async (req, res) => {
   const slot = HERO_SLOTS[req.params.slot];
   if (!slot) return res.status(400).json({ error: 'Slot inválido.' });
+  if (!(await runUpload(heroUpload, req, res))) return;
   if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna imagen.' });
   if (req.file.mimetype !== slot.mime) {
     const wanted = slot.mime === 'image/png' ? 'PNG' : 'JPG';
@@ -73,11 +77,11 @@ router.post('/media/hero/:slot', multerErrorHandler(heroUpload), (req, res) => {
   }
   fs.writeFileSync(path.join(ROOT, 'assets', slot.file), req.file.buffer);
   res.json({ ok: true, url: `/assets/${slot.file}?v=${Date.now()}` });
-});
+}));
 
 // -------------------------------------------------------------- about/custom
-// Single-image settings (not their own DB rows): stored as a URL under the
-// corresponding settings.*_image_url key.
+// Single-image settings (no son su propia fila en la base): se guardan como
+// una URL bajo la key correspondiente de benjis_content.*_image_url.
 
 const SINGLE_IMAGE_TARGETS = {
   'about-proceso': { subdir: 'about', settingKey: 'about_proceso_image_url' },
@@ -86,353 +90,368 @@ const SINGLE_IMAGE_TARGETS = {
   gallery: { subdir: 'gallery', settingKey: 'gallery_image_url' }
 };
 
-router.post('/media/:target', (req, res, next) => {
+router.post('/media/:target', ah(async (req, res) => {
   const target = SINGLE_IMAGE_TARGETS[req.params.target];
   if (!target) return res.status(400).json({ error: 'Destino de imagen inválido.' });
-  multerErrorHandler(genericUpload(target.subdir))(req, res, () => {
-    if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna imagen.' });
-    const db = getDb();
-    const prev = db.prepare('SELECT value FROM settings WHERE key = ?').get(target.settingKey);
-    const url = publicUrlFor(target.subdir, req.file.filename);
-    db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)
-      ON CONFLICT(key) DO UPDATE SET value = excluded.value`).run(target.settingKey, url);
-    if (prev?.value) deleteUploadedFile(prev.value);
-    res.json({ ok: true, url });
-  });
-});
+  if (!(await runUpload(imageUpload, req, res))) return;
+  if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna imagen.' });
+
+  const { data: prevRow } = await supabase.from('benjis_content').select('value').eq('key', target.settingKey).maybeSingle();
+  const url = await uploadImage(target.subdir, req.file);
+  const { error } = await supabase.from('benjis_content').upsert({ key: target.settingKey, value: url });
+  if (error) throw error;
+  if (prevRow?.value) await deleteImageByUrl(prevRow.value);
+  res.json({ ok: true, url });
+}));
 
 // ------------------------------------------------------------------ products
 
-function serializeProduct(p, db) {
-  const images = db.prepare('SELECT id, url, sort_order FROM product_images WHERE product_id = ? ORDER BY sort_order, id').all(p.id);
+function serializeProduct(p) {
   return {
-    id: p.id, name: p.name, price: p.price, cat: p.cat, status: p.status,
-    unique: !!p.unique_piece, badge: p.badge || '', sizes: JSON.parse(p.sizes || '[]'),
+    id: Number(p.id), name: p.name, price: p.price, cat: p.cat, status: p.status,
+    unique: !!p.unique_piece, badge: p.badge || '', sizes: p.sizes || [],
     description: p.description || '', materials: p.materials || '', shippingReturns: p.shipping_returns || '',
-    featured: !!p.featured, sortOrder: p.sort_order, images
+    featured: !!p.featured, sortOrder: p.sort_order,
+    images: (p.images || []).map(img => ({ id: img.id, url: img.url }))
   };
 }
 
-router.get('/products', (req, res) => {
-  const db = getDb();
-  const rows = db.prepare('SELECT * FROM products ORDER BY sort_order, id').all();
-  res.json(rows.map(p => serializeProduct(p, db)));
-});
+router.get('/products', ah(async (req, res) => {
+  const { data, error } = await supabase.from('benjis_products').select('*').order('sort_order').order('id');
+  if (error) throw error;
+  res.json(data.map(serializeProduct));
+}));
 
-router.post('/products', (req, res) => {
+router.post('/products', ah(async (req, res) => {
   const b = req.body || {};
   if (!b.name || !String(b.name).trim()) return res.status(400).json({ error: 'El nombre es obligatorio.' });
-  const db = getDb();
-  const maxOrder = db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM products').get().m;
-  const info = db.prepare(`INSERT INTO products
-    (name, price, cat, status, unique_piece, badge, sizes, description, materials, shipping_returns, featured, sort_order)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
-    String(b.name).trim(),
-    b.price === '' || b.price === null || b.price === undefined ? null : Number(b.price),
-    b.cat || '', b.status || 'published', b.unique ? 1 : 0, b.badge || null,
-    JSON.stringify(Array.isArray(b.sizes) ? b.sizes : []),
-    b.description || '', b.materials || '', b.shippingReturns || '',
-    b.featured ? 1 : 0, maxOrder + 1
-  );
-  const row = db.prepare('SELECT * FROM products WHERE id = ?').get(info.lastInsertRowid);
-  res.status(201).json(serializeProduct(row, db));
-});
+  const { data: maxRow } = await supabase.from('benjis_products').select('sort_order').order('sort_order', { ascending: false }).limit(1).maybeSingle();
+  const { data, error } = await supabase.from('benjis_products').insert({
+    name: String(b.name).trim(),
+    price: b.price === '' || b.price === null || b.price === undefined ? null : Number(b.price),
+    cat: b.cat || '', status: b.status || 'published', unique_piece: !!b.unique, badge: b.badge || null,
+    sizes: Array.isArray(b.sizes) ? b.sizes : [],
+    description: b.description || '', materials: b.materials || '', shipping_returns: b.shippingReturns || '',
+    featured: !!b.featured, sort_order: (maxRow?.sort_order ?? -1) + 1
+  }).select().single();
+  if (error) throw error;
+  res.status(201).json(serializeProduct(data));
+}));
 
-router.put('/products/:id', (req, res) => {
-  const db = getDb();
-  const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
+router.put('/products/:id', ah(async (req, res) => {
+  const { data: existing, error: getErr } = await supabase.from('benjis_products').select('*').eq('id', req.params.id).maybeSingle();
+  if (getErr) throw getErr;
   if (!existing) return res.status(404).json({ error: 'Producto no encontrado.' });
   const b = req.body || {};
-  db.prepare(`UPDATE products SET
-      name = ?, price = ?, cat = ?, status = ?, unique_piece = ?, badge = ?, sizes = ?,
-      description = ?, materials = ?, shipping_returns = ?, featured = ?
-    WHERE id = ?`).run(
-    b.name !== undefined ? String(b.name).trim() : existing.name,
-    b.price === '' || b.price === null ? null : (b.price !== undefined ? Number(b.price) : existing.price),
-    b.cat !== undefined ? b.cat : existing.cat,
-    b.status !== undefined ? b.status : existing.status,
-    b.unique !== undefined ? (b.unique ? 1 : 0) : existing.unique_piece,
-    b.badge !== undefined ? (b.badge || null) : existing.badge,
-    b.sizes !== undefined ? JSON.stringify(Array.isArray(b.sizes) ? b.sizes : []) : existing.sizes,
-    b.description !== undefined ? b.description : existing.description,
-    b.materials !== undefined ? b.materials : existing.materials,
-    b.shippingReturns !== undefined ? b.shippingReturns : existing.shipping_returns,
-    b.featured !== undefined ? (b.featured ? 1 : 0) : existing.featured,
-    req.params.id
-  );
-  const row = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
-  res.json(serializeProduct(row, db));
-});
+  const patch = {
+    name: b.name !== undefined ? String(b.name).trim() : existing.name,
+    price: b.price === '' || b.price === null ? null : (b.price !== undefined ? Number(b.price) : existing.price),
+    cat: b.cat !== undefined ? b.cat : existing.cat,
+    status: b.status !== undefined ? b.status : existing.status,
+    unique_piece: b.unique !== undefined ? !!b.unique : existing.unique_piece,
+    badge: b.badge !== undefined ? (b.badge || null) : existing.badge,
+    sizes: b.sizes !== undefined ? (Array.isArray(b.sizes) ? b.sizes : []) : existing.sizes,
+    description: b.description !== undefined ? b.description : existing.description,
+    materials: b.materials !== undefined ? b.materials : existing.materials,
+    shipping_returns: b.shippingReturns !== undefined ? b.shippingReturns : existing.shipping_returns,
+    featured: b.featured !== undefined ? !!b.featured : existing.featured
+  };
+  const { data, error } = await supabase.from('benjis_products').update(patch).eq('id', req.params.id).select().single();
+  if (error) throw error;
+  res.json(serializeProduct(data));
+}));
 
-router.delete('/products/:id', (req, res) => {
-  const db = getDb();
-  const images = db.prepare('SELECT url FROM product_images WHERE product_id = ?').all(req.params.id);
-  const info = db.prepare('DELETE FROM products WHERE id = ?').run(req.params.id);
-  if (!info.changes) return res.status(404).json({ error: 'Producto no encontrado.' });
-  images.forEach(img => deleteUploadedFile(img.url));
+router.delete('/products/:id', ah(async (req, res) => {
+  const { data: existing, error: getErr } = await supabase.from('benjis_products').select('images').eq('id', req.params.id).maybeSingle();
+  if (getErr) throw getErr;
+  if (!existing) return res.status(404).json({ error: 'Producto no encontrado.' });
+  const { error } = await supabase.from('benjis_products').delete().eq('id', req.params.id);
+  if (error) throw error;
+  await Promise.all((existing.images || []).map(img => deleteImageByUrl(img.url)));
   res.json({ ok: true });
-});
+}));
 
-router.post('/products/reorder', (req, res) => {
+router.post('/products/reorder', ah(async (req, res) => {
   const order = Array.isArray(req.body?.order) ? req.body.order : null;
   if (!order) return res.status(400).json({ error: 'Falta la lista "order".' });
-  const db = getDb();
-  const stmt = db.prepare('UPDATE products SET sort_order = ? WHERE id = ?');
-  order.forEach((id, i) => stmt.run(i, id));
+  await Promise.all(order.map((id, i) => supabase.from('benjis_products').update({ sort_order: i }).eq('id', id)));
   res.json({ ok: true });
-});
+}));
 
-router.post('/products/:id/images', (req, res) => {
-  const db = getDb();
-  const product = db.prepare('SELECT id FROM products WHERE id = ?').get(req.params.id);
+router.post('/products/:id/images', ah(async (req, res) => {
+  const { data: product, error: getErr } = await supabase.from('benjis_products').select('images').eq('id', req.params.id).maybeSingle();
+  if (getErr) throw getErr;
   if (!product) return res.status(404).json({ error: 'Producto no encontrado.' });
-  multerErrorHandler(genericUpload('products'))(req, res, () => {
-    if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna imagen.' });
-    const url = publicUrlFor('products', req.file.filename);
-    const maxOrder = db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM product_images WHERE product_id = ?').get(req.params.id).m;
-    const info = db.prepare('INSERT INTO product_images (product_id, url, sort_order) VALUES (?, ?, ?)').run(req.params.id, url, maxOrder + 1);
-    res.status(201).json({ id: info.lastInsertRowid, url });
-  });
-});
+  if (!(await runUpload(imageUpload, req, res))) return;
+  if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna imagen.' });
 
-router.delete('/products/:id/images/:imageId', (req, res) => {
-  const db = getDb();
-  const img = db.prepare('SELECT * FROM product_images WHERE id = ? AND product_id = ?').get(req.params.imageId, req.params.id);
-  if (!img) return res.status(404).json({ error: 'Imagen no encontrada.' });
-  db.prepare('DELETE FROM product_images WHERE id = ?').run(req.params.imageId);
-  deleteUploadedFile(img.url);
+  const url = await uploadImage('products', req.file);
+  const image = { id: crypto.randomUUID(), url };
+  const { error } = await supabase.from('benjis_products').update({ images: [...(product.images || []), image] }).eq('id', req.params.id);
+  if (error) throw error;
+  res.status(201).json(image);
+}));
+
+router.delete('/products/:id/images/:imageId', ah(async (req, res) => {
+  const { data: product, error: getErr } = await supabase.from('benjis_products').select('images').eq('id', req.params.id).maybeSingle();
+  if (getErr) throw getErr;
+  const img = product?.images?.find(i => i.id === req.params.imageId);
+  if (!product || !img) return res.status(404).json({ error: 'Imagen no encontrada.' });
+  const { error } = await supabase.from('benjis_products').update({ images: product.images.filter(i => i.id !== req.params.imageId) }).eq('id', req.params.id);
+  if (error) throw error;
+  await deleteImageByUrl(img.url);
   res.json({ ok: true });
-});
+}));
 
-router.post('/products/:id/images/reorder', (req, res) => {
+router.post('/products/:id/images/reorder', ah(async (req, res) => {
   const order = Array.isArray(req.body?.order) ? req.body.order : null;
   if (!order) return res.status(400).json({ error: 'Falta la lista "order".' });
-  const db = getDb();
-  const stmt = db.prepare('UPDATE product_images SET sort_order = ? WHERE id = ? AND product_id = ?');
-  order.forEach((id, i) => stmt.run(i, id, req.params.id));
+  const { data: product, error: getErr } = await supabase.from('benjis_products').select('images').eq('id', req.params.id).maybeSingle();
+  if (getErr) throw getErr;
+  if (!product) return res.status(404).json({ error: 'Producto no encontrado.' });
+  const byId = new Map((product.images || []).map(i => [i.id, i]));
+  const images = order.map(id => byId.get(id)).filter(Boolean);
+  const { error } = await supabase.from('benjis_products').update({ images }).eq('id', req.params.id);
+  if (error) throw error;
   res.json({ ok: true });
-});
+}));
 
 // ---------------------------------------------------------------- categories
 
-router.get('/categories', (req, res) => {
-  const db = getDb();
-  res.json(db.prepare('SELECT id, name, sort_order AS sortOrder FROM categories ORDER BY sort_order, id').all());
-});
+router.get('/categories', ah(async (req, res) => {
+  const { data, error } = await supabase.from('benjis_categories').select('id, name, sort_order').order('sort_order').order('id');
+  if (error) throw error;
+  res.json(data.map(c => ({ id: Number(c.id), name: c.name, sortOrder: c.sort_order })));
+}));
 
-router.post('/categories', (req, res) => {
+router.post('/categories', ah(async (req, res) => {
   const name = (req.body?.name || '').trim().toUpperCase();
   if (!name) return res.status(400).json({ error: 'El nombre es obligatorio.' });
-  const db = getDb();
-  const maxOrder = db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM categories').get().m;
-  try {
-    const info = db.prepare('INSERT INTO categories (name, sort_order) VALUES (?, ?)').run(name, maxOrder + 1);
-    res.status(201).json({ id: info.lastInsertRowid, name, sortOrder: maxOrder + 1 });
-  } catch (err) {
-    res.status(400).json({ error: 'Ya existe una categoría con ese nombre.' });
-  }
-});
+  const { data: maxRow } = await supabase.from('benjis_categories').select('sort_order').order('sort_order', { ascending: false }).limit(1).maybeSingle();
+  const sortOrder = (maxRow?.sort_order ?? -1) + 1;
+  const { data, error } = await supabase.from('benjis_categories').insert({ name, sort_order: sortOrder }).select().single();
+  if (error) return res.status(400).json({ error: 'Ya existe una categoría con ese nombre.' });
+  res.status(201).json({ id: Number(data.id), name: data.name, sortOrder: data.sort_order });
+}));
 
-router.put('/categories/:id', (req, res) => {
+router.put('/categories/:id', ah(async (req, res) => {
   const name = (req.body?.name || '').trim().toUpperCase();
   if (!name) return res.status(400).json({ error: 'El nombre es obligatorio.' });
-  const db = getDb();
-  try {
-    const info = db.prepare('UPDATE categories SET name = ? WHERE id = ?').run(name, req.params.id);
-    if (!info.changes) return res.status(404).json({ error: 'Categoría no encontrada.' });
-    res.json({ ok: true });
-  } catch (err) {
-    res.status(400).json({ error: 'Ya existe una categoría con ese nombre.' });
-  }
-});
-
-router.delete('/categories/:id', (req, res) => {
-  const db = getDb();
-  const info = db.prepare('DELETE FROM categories WHERE id = ?').run(req.params.id);
-  if (!info.changes) return res.status(404).json({ error: 'Categoría no encontrada.' });
+  const { data, error } = await supabase.from('benjis_categories').update({ name }).eq('id', req.params.id).select().maybeSingle();
+  if (error) return res.status(400).json({ error: 'Ya existe una categoría con ese nombre.' });
+  if (!data) return res.status(404).json({ error: 'Categoría no encontrada.' });
   res.json({ ok: true });
-});
+}));
 
-router.post('/categories/reorder', (req, res) => {
+router.delete('/categories/:id', ah(async (req, res) => {
+  const { data, error } = await supabase.from('benjis_categories').delete().eq('id', req.params.id).select().maybeSingle();
+  if (error) throw error;
+  if (!data) return res.status(404).json({ error: 'Categoría no encontrada.' });
+  res.json({ ok: true });
+}));
+
+router.post('/categories/reorder', ah(async (req, res) => {
   const order = Array.isArray(req.body?.order) ? req.body.order : null;
   if (!order) return res.status(400).json({ error: 'Falta la lista "order".' });
-  const db = getDb();
-  const stmt = db.prepare('UPDATE categories SET sort_order = ? WHERE id = ?');
-  order.forEach((id, i) => stmt.run(i, id));
+  await Promise.all(order.map((id, i) => supabase.from('benjis_categories').update({ sort_order: i }).eq('id', id)));
   res.json({ ok: true });
-});
+}));
 
 // ------------------------------------------------------------- custom fields
+// Viven como un array JSON bajo benjis_content.key = 'custom_form_fields'
+// (antes era su propia tabla, custom_form_fields).
 
-router.get('/custom-fields', (req, res) => {
-  const db = getDb();
-  res.json(db.prepare('SELECT id, label, placeholder, sort_order AS sortOrder FROM custom_form_fields ORDER BY sort_order, id').all());
-});
+async function loadCustomFields() {
+  const { data, error } = await supabase.from('benjis_content').select('value').eq('key', 'custom_form_fields').maybeSingle();
+  if (error) throw error;
+  return data?.value ? JSON.parse(data.value) : [];
+}
 
-router.post('/custom-fields', (req, res) => {
+async function saveCustomFields(fields) {
+  const { error } = await supabase.from('benjis_content').upsert({ key: 'custom_form_fields', value: JSON.stringify(fields) });
+  if (error) throw error;
+}
+
+router.get('/custom-fields', ah(async (req, res) => {
+  const fields = await loadCustomFields();
+  res.json(fields.map((f, i) => ({ id: f.id, label: f.label, placeholder: f.placeholder || '', sortOrder: i })));
+}));
+
+router.post('/custom-fields', ah(async (req, res) => {
   const label = (req.body?.label || '').trim();
   if (!label) return res.status(400).json({ error: 'El label es obligatorio.' });
-  const db = getDb();
-  const maxOrder = db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM custom_form_fields').get().m;
-  const info = db.prepare('INSERT INTO custom_form_fields (label, placeholder, sort_order) VALUES (?, ?, ?)').run(label, req.body?.placeholder || '', maxOrder + 1);
-  res.status(201).json({ id: info.lastInsertRowid, label, placeholder: req.body?.placeholder || '', sortOrder: maxOrder + 1 });
-});
+  const fields = await loadCustomFields();
+  const field = { id: crypto.randomUUID(), label, placeholder: req.body?.placeholder || '' };
+  fields.push(field);
+  await saveCustomFields(fields);
+  res.status(201).json({ id: field.id, label: field.label, placeholder: field.placeholder, sortOrder: fields.length - 1 });
+}));
 
-router.put('/custom-fields/:id', (req, res) => {
+router.put('/custom-fields/:id', ah(async (req, res) => {
   const label = (req.body?.label || '').trim();
   if (!label) return res.status(400).json({ error: 'El label es obligatorio.' });
-  const db = getDb();
-  const info = db.prepare('UPDATE custom_form_fields SET label = ?, placeholder = ? WHERE id = ?').run(label, req.body?.placeholder || '', req.params.id);
-  if (!info.changes) return res.status(404).json({ error: 'Campo no encontrado.' });
+  const fields = await loadCustomFields();
+  const idx = fields.findIndex(f => f.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Campo no encontrado.' });
+  fields[idx] = { ...fields[idx], label, placeholder: req.body?.placeholder || '' };
+  await saveCustomFields(fields);
   res.json({ ok: true });
-});
+}));
 
-router.delete('/custom-fields/:id', (req, res) => {
-  const db = getDb();
-  const info = db.prepare('DELETE FROM custom_form_fields WHERE id = ?').run(req.params.id);
-  if (!info.changes) return res.status(404).json({ error: 'Campo no encontrado.' });
+router.delete('/custom-fields/:id', ah(async (req, res) => {
+  const fields = await loadCustomFields();
+  const next = fields.filter(f => f.id !== req.params.id);
+  if (next.length === fields.length) return res.status(404).json({ error: 'Campo no encontrado.' });
+  await saveCustomFields(next);
   res.json({ ok: true });
-});
+}));
 
-router.post('/custom-fields/reorder', (req, res) => {
+router.post('/custom-fields/reorder', ah(async (req, res) => {
   const order = Array.isArray(req.body?.order) ? req.body.order : null;
   if (!order) return res.status(400).json({ error: 'Falta la lista "order".' });
-  const db = getDb();
-  const stmt = db.prepare('UPDATE custom_form_fields SET sort_order = ? WHERE id = ?');
-  order.forEach((id, i) => stmt.run(i, id));
+  const fields = await loadCustomFields();
+  const byId = new Map(fields.map(f => [f.id, f]));
+  await saveCustomFields(order.map(id => byId.get(id)).filter(Boolean));
   res.json({ ok: true });
-});
+}));
 
 // ------------------------------------------------------------------ archives
 
-function serializeArchive(a, db) {
-  const photos = db.prepare('SELECT id, url, label, sort_order AS sortOrder FROM archive_photos WHERE archive_id = ? ORDER BY sort_order, id').all(a.id);
+function serializeArchive(a) {
   return {
-    id: a.id, title: a.title, credit: a.credit, description: a.description || '',
+    id: Number(a.id), title: a.title, credit: a.credit, description: a.description || '',
     longText: a.long_text || '', coverImageUrl: a.cover_image_url || '', wide: !!a.wide,
-    sortOrder: a.sort_order, photos
+    sortOrder: a.sort_order,
+    photos: (a.photos || []).map(ph => ({ id: ph.id, url: ph.url, label: ph.label || '' }))
   };
 }
 
-router.get('/archives', (req, res) => {
-  const db = getDb();
-  const rows = db.prepare('SELECT * FROM archive_entries ORDER BY sort_order, id').all();
-  res.json(rows.map(a => serializeArchive(a, db)));
-});
+router.get('/archives', ah(async (req, res) => {
+  const { data, error } = await supabase.from('benjis_archives').select('*').order('sort_order').order('id');
+  if (error) throw error;
+  res.json(data.map(serializeArchive));
+}));
 
-router.post('/archives', (req, res) => {
+router.post('/archives', ah(async (req, res) => {
   const b = req.body || {};
   if (!b.title || !String(b.title).trim()) return res.status(400).json({ error: 'El título es obligatorio.' });
-  const db = getDb();
-  const maxOrder = db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM archive_entries').get().m;
-  const info = db.prepare(`INSERT INTO archive_entries (title, credit, description, long_text, cover_image_url, wide, sort_order)
-    VALUES (?, ?, ?, ?, NULL, ?, ?)`).run(String(b.title).trim(), b.credit || '', b.description || '', b.longText || '', b.wide ? 1 : 0, maxOrder + 1);
-  const row = db.prepare('SELECT * FROM archive_entries WHERE id = ?').get(info.lastInsertRowid);
-  res.status(201).json(serializeArchive(row, db));
-});
+  const { data: maxRow } = await supabase.from('benjis_archives').select('sort_order').order('sort_order', { ascending: false }).limit(1).maybeSingle();
+  const { data, error } = await supabase.from('benjis_archives').insert({
+    title: String(b.title).trim(), credit: b.credit || '', description: b.description || '',
+    long_text: b.longText || '', cover_image_url: null, wide: !!b.wide, sort_order: (maxRow?.sort_order ?? -1) + 1
+  }).select().single();
+  if (error) throw error;
+  res.status(201).json(serializeArchive(data));
+}));
 
-router.put('/archives/:id', (req, res) => {
-  const db = getDb();
-  const existing = db.prepare('SELECT * FROM archive_entries WHERE id = ?').get(req.params.id);
+router.put('/archives/:id', ah(async (req, res) => {
+  const { data: existing, error: getErr } = await supabase.from('benjis_archives').select('*').eq('id', req.params.id).maybeSingle();
+  if (getErr) throw getErr;
   if (!existing) return res.status(404).json({ error: 'Entrada no encontrada.' });
   const b = req.body || {};
-  db.prepare(`UPDATE archive_entries SET title = ?, credit = ?, description = ?, long_text = ?, wide = ? WHERE id = ?`).run(
-    b.title !== undefined ? String(b.title).trim() : existing.title,
-    b.credit !== undefined ? b.credit : existing.credit,
-    b.description !== undefined ? b.description : existing.description,
-    b.longText !== undefined ? b.longText : existing.long_text,
-    b.wide !== undefined ? (b.wide ? 1 : 0) : existing.wide,
-    req.params.id
-  );
-  const row = db.prepare('SELECT * FROM archive_entries WHERE id = ?').get(req.params.id);
-  res.json(serializeArchive(row, db));
-});
+  const patch = {
+    title: b.title !== undefined ? String(b.title).trim() : existing.title,
+    credit: b.credit !== undefined ? b.credit : existing.credit,
+    description: b.description !== undefined ? b.description : existing.description,
+    long_text: b.longText !== undefined ? b.longText : existing.long_text,
+    wide: b.wide !== undefined ? !!b.wide : existing.wide
+  };
+  const { data, error } = await supabase.from('benjis_archives').update(patch).eq('id', req.params.id).select().single();
+  if (error) throw error;
+  res.json(serializeArchive(data));
+}));
 
-router.delete('/archives/:id', (req, res) => {
-  const db = getDb();
-  const existing = db.prepare('SELECT * FROM archive_entries WHERE id = ?').get(req.params.id);
+router.delete('/archives/:id', ah(async (req, res) => {
+  const { data: existing, error: getErr } = await supabase.from('benjis_archives').select('cover_image_url, photos').eq('id', req.params.id).maybeSingle();
+  if (getErr) throw getErr;
   if (!existing) return res.status(404).json({ error: 'Entrada no encontrada.' });
-  const photos = db.prepare('SELECT url FROM archive_photos WHERE archive_id = ?').all(req.params.id);
-  db.prepare('DELETE FROM archive_entries WHERE id = ?').run(req.params.id);
-  if (existing.cover_image_url) deleteUploadedFile(existing.cover_image_url);
-  photos.forEach(p => deleteUploadedFile(p.url));
+  const { error } = await supabase.from('benjis_archives').delete().eq('id', req.params.id);
+  if (error) throw error;
+  if (existing.cover_image_url) await deleteImageByUrl(existing.cover_image_url);
+  await Promise.all((existing.photos || []).map(p => deleteImageByUrl(p.url)));
   res.json({ ok: true });
-});
+}));
 
-router.post('/archives/reorder', (req, res) => {
+router.post('/archives/reorder', ah(async (req, res) => {
   const order = Array.isArray(req.body?.order) ? req.body.order : null;
   if (!order) return res.status(400).json({ error: 'Falta la lista "order".' });
-  const db = getDb();
-  const stmt = db.prepare('UPDATE archive_entries SET sort_order = ? WHERE id = ?');
-  order.forEach((id, i) => stmt.run(i, id));
+  await Promise.all(order.map((id, i) => supabase.from('benjis_archives').update({ sort_order: i }).eq('id', id)));
   res.json({ ok: true });
-});
+}));
 
-router.post('/archives/:id/cover', (req, res) => {
-  const db = getDb();
-  const entry = db.prepare('SELECT * FROM archive_entries WHERE id = ?').get(req.params.id);
+router.post('/archives/:id/cover', ah(async (req, res) => {
+  const { data: entry, error: getErr } = await supabase.from('benjis_archives').select('cover_image_url').eq('id', req.params.id).maybeSingle();
+  if (getErr) throw getErr;
   if (!entry) return res.status(404).json({ error: 'Entrada no encontrada.' });
-  multerErrorHandler(genericUpload('archives'))(req, res, () => {
-    if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna imagen.' });
-    const url = publicUrlFor('archives', req.file.filename);
-    db.prepare('UPDATE archive_entries SET cover_image_url = ? WHERE id = ?').run(url, req.params.id);
-    if (entry.cover_image_url) deleteUploadedFile(entry.cover_image_url);
-    res.json({ ok: true, url });
-  });
-});
+  if (!(await runUpload(imageUpload, req, res))) return;
+  if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna imagen.' });
 
-router.post('/archives/:id/photos', (req, res) => {
-  const db = getDb();
-  const entry = db.prepare('SELECT id FROM archive_entries WHERE id = ?').get(req.params.id);
+  const url = await uploadImage('archives', req.file);
+  const { error } = await supabase.from('benjis_archives').update({ cover_image_url: url }).eq('id', req.params.id);
+  if (error) throw error;
+  if (entry.cover_image_url) await deleteImageByUrl(entry.cover_image_url);
+  res.json({ ok: true, url });
+}));
+
+router.post('/archives/:id/photos', ah(async (req, res) => {
+  const { data: entry, error: getErr } = await supabase.from('benjis_archives').select('photos').eq('id', req.params.id).maybeSingle();
+  if (getErr) throw getErr;
   if (!entry) return res.status(404).json({ error: 'Entrada no encontrada.' });
-  multerErrorHandler(genericUpload('archives'))(req, res, () => {
-    if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna imagen.' });
-    const url = publicUrlFor('archives', req.file.filename);
-    const maxOrder = db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM archive_photos WHERE archive_id = ?').get(req.params.id).m;
-    const info = db.prepare('INSERT INTO archive_photos (archive_id, url, label, sort_order) VALUES (?, ?, ?, ?)').run(req.params.id, url, req.body?.label || '', maxOrder + 1);
-    res.status(201).json({ id: info.lastInsertRowid, url });
-  });
-});
+  if (!(await runUpload(imageUpload, req, res))) return;
+  if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna imagen.' });
 
-router.delete('/archives/:id/photos/:photoId', (req, res) => {
-  const db = getDb();
-  const photo = db.prepare('SELECT * FROM archive_photos WHERE id = ? AND archive_id = ?').get(req.params.photoId, req.params.id);
-  if (!photo) return res.status(404).json({ error: 'Foto no encontrada.' });
-  db.prepare('DELETE FROM archive_photos WHERE id = ?').run(req.params.photoId);
-  deleteUploadedFile(photo.url);
+  const url = await uploadImage('archives', req.file);
+  const photo = { id: crypto.randomUUID(), url, label: req.body?.label || '' };
+  const { error } = await supabase.from('benjis_archives').update({ photos: [...(entry.photos || []), photo] }).eq('id', req.params.id);
+  if (error) throw error;
+  res.status(201).json(photo);
+}));
+
+router.delete('/archives/:id/photos/:photoId', ah(async (req, res) => {
+  const { data: entry, error: getErr } = await supabase.from('benjis_archives').select('photos').eq('id', req.params.id).maybeSingle();
+  if (getErr) throw getErr;
+  const photo = entry?.photos?.find(p => p.id === req.params.photoId);
+  if (!entry || !photo) return res.status(404).json({ error: 'Foto no encontrada.' });
+  const { error } = await supabase.from('benjis_archives').update({ photos: entry.photos.filter(p => p.id !== req.params.photoId) }).eq('id', req.params.id);
+  if (error) throw error;
+  await deleteImageByUrl(photo.url);
   res.json({ ok: true });
-});
+}));
 
-router.post('/archives/:id/photos/reorder', (req, res) => {
+router.post('/archives/:id/photos/reorder', ah(async (req, res) => {
   const order = Array.isArray(req.body?.order) ? req.body.order : null;
   if (!order) return res.status(400).json({ error: 'Falta la lista "order".' });
-  const db = getDb();
-  const stmt = db.prepare('UPDATE archive_photos SET sort_order = ? WHERE id = ? AND archive_id = ?');
-  order.forEach((id, i) => stmt.run(i, id, req.params.id));
+  const { data: entry, error: getErr } = await supabase.from('benjis_archives').select('photos').eq('id', req.params.id).maybeSingle();
+  if (getErr) throw getErr;
+  if (!entry) return res.status(404).json({ error: 'Entrada no encontrada.' });
+  const byId = new Map((entry.photos || []).map(p => [p.id, p]));
+  const photos = order.map(id => byId.get(id)).filter(Boolean);
+  const { error } = await supabase.from('benjis_archives').update({ photos }).eq('id', req.params.id);
+  if (error) throw error;
   res.json({ ok: true });
-});
+}));
 
 // --------------------------------------------------------------------- orders
 
-router.get('/orders', (req, res) => {
-  const db = getDb();
-  const rows = db.prepare('SELECT * FROM orders ORDER BY id DESC').all();
-  res.json(rows.map(o => ({
-    id: o.id, name: o.name, email: o.email, phone: o.phone, address: o.address,
-    items: JSON.parse(o.items || '[]'), total: o.total, status: o.status,
+router.get('/orders', ah(async (req, res) => {
+  const { data, error } = await supabase.from('benjis_orders').select('*').order('id', { ascending: false });
+  if (error) throw error;
+  res.json(data.map(o => ({
+    id: Number(o.id), name: o.name, email: o.email, phone: o.phone, address: o.address,
+    items: o.items || [], total: o.total, status: o.status,
     mpPreferenceId: o.mp_preference_id, mpPaymentId: o.mp_payment_id, createdAt: o.created_at
   })));
-});
+}));
 
 const ORDER_STATUSES = new Set(['pendiente', 'aprobado', 'rechazado']);
 
-router.put('/orders/:id', (req, res) => {
+router.put('/orders/:id', ah(async (req, res) => {
   const status = req.body?.status;
   if (!ORDER_STATUSES.has(status)) return res.status(400).json({ error: 'Estado inválido.' });
-  const db = getDb();
-  const info = db.prepare('UPDATE orders SET status = ? WHERE id = ?').run(status, req.params.id);
-  if (!info.changes) return res.status(404).json({ error: 'Pedido no encontrado.' });
+  const { data, error } = await supabase.from('benjis_orders').update({ status }).eq('id', req.params.id).select().maybeSingle();
+  if (error) throw error;
+  if (!data) return res.status(404).json({ error: 'Pedido no encontrado.' });
   res.json({ ok: true });
-});
+}));
 
 export default router;

@@ -22,10 +22,10 @@ app.use(express.json());
 app.use(sessionMiddleware());
 
 // Static content. Mounted explicitly (not a blanket express.static(ROOT))
-// so server/, data/, node_modules/ and .env are never reachable over HTTP.
+// so server/, node_modules/ and .env are never reachable over HTTP.
 app.use('/assets', express.static(path.join(ROOT, 'assets')));
 app.use('/uploads', express.static(path.join(ROOT, 'uploads'))); // legacy, unreferenced but kept as-is
-app.use('/uploads-admin', express.static(path.join(ROOT, 'uploads-admin')));
+app.use('/uploads-admin', express.static(path.join(ROOT, 'uploads-admin'))); // legacy: uploads del admin ahora van a Supabase Storage
 app.get('/support.js', (req, res) => res.sendFile(path.join(ROOT, 'support.js')));
 
 app.use('/api', publicRoutes);
