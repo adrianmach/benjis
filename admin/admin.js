@@ -364,7 +364,7 @@ async function renderCustomPage(main) {
 async function renderAbout(main) {
   main.innerHTML = '';
   main.appendChild(el('h2', {}, ['Página About']));
-  main.appendChild(el('p', { class: 'section-hint' }, ['Subtítulo bajo el logo y los 2 bloques de contenido de la página About.']));
+  main.appendChild(el('p', { class: 'section-hint' }, ['Subtítulo bajo el logo y los 3 bloques de contenido de la página About.']));
   const settings = await api.getSettings();
 
   buildSettingsForm(main, settings, [{ key: 'about_subtitle', label: 'Subtítulo bajo el logo' }]);
@@ -386,6 +386,14 @@ async function renderAbout(main) {
     { key: 'about_materiales_link_text', label: 'Texto del link' }
   ]);
   main.appendChild(imageField('Imagen de materiales', settings.about_materiales_image_url, file => api.uploadSingle('about-materiales', file)));
+
+  main.appendChild(el('hr', { class: 'divider' }));
+  main.appendChild(el('h2', { style: 'font-size:16px' }, ['Bloque "Sobre mí"']));
+  buildSettingsForm(main, settings, [
+    { key: 'about_sobremi_title', label: 'Título' },
+    { key: 'about_sobremi_paragraph', label: 'Párrafo', type: 'textarea' }
+  ]);
+  main.appendChild(imageField('Imagen de "Sobre mí"', settings.about_sobremi_image_url, file => api.uploadSingle('about-sobremi', file)));
 }
 
 function categoryItem(c, removeLocal) {
@@ -439,18 +447,20 @@ function productEditForm(p, categories, removeLocal, refreshAll) {
 
   const nameInput = el('input', { type: 'text' }); nameInput.value = p.name;
   const priceInput = el('input', { type: 'number', min: '0', step: '1' }); priceInput.value = p.price ?? '';
+  const salePriceInput = el('input', { type: 'number', min: '0', step: '1' }); salePriceInput.value = p.salePrice ?? '';
   const catSelect = el('select');
   categories.forEach(c => { const opt = el('option', { value: c.name }, [c.name]); if (c.name === p.cat) opt.selected = true; catSelect.appendChild(opt); });
   const statusSelect = el('select');
-  [['published', 'Publicado'], ['coming', 'Coming soon'], ['sold', 'Sold out']].forEach(([v, l]) => { const opt = el('option', { value: v }, [l]); if (v === p.status) opt.selected = true; statusSelect.appendChild(opt); });
+  [['published', 'Publicado'], ['sold', 'Vendido']].forEach(([v, l]) => { const opt = el('option', { value: v }, [l]); if (v === p.status) opt.selected = true; statusSelect.appendChild(opt); });
   const badgeSelect = el('select');
-  [['', 'Sin badge'], ['1/1', '1/1'], ['SOLD OUT', 'SOLD OUT'], ['COMING SOON', 'COMING SOON']].forEach(([v, l]) => { const opt = el('option', { value: v }, [l]); if (v === (p.badge || '')) opt.selected = true; badgeSelect.appendChild(opt); });
+  [['', 'Sin badge'], ['1/1', '1/1'], ['AGOTADO', 'AGOTADO']].forEach(([v, l]) => { const opt = el('option', { value: v }, [l]); if (v === (p.badge || '')) opt.selected = true; badgeSelect.appendChild(opt); });
   const descTextarea = el('textarea', { rows: 3 }); descTextarea.value = p.description || '';
   const materialsTextarea = el('textarea', { rows: 3 }); materialsTextarea.value = p.materials || '';
   const shippingTextarea = el('textarea', { rows: 3 }); shippingTextarea.value = p.shippingReturns || '';
 
   let unique = p.unique;
   let featured = p.featured;
+  let onSale = p.onSale;
 
   form.appendChild(el('div', { class: 'field-row' }, [field('Nombre', nameInput), field('Precio (UYU)', priceInput)]));
   form.appendChild(el('div', { class: 'field-row' }, [field('Categoría', catSelect), field('Estado', statusSelect), field('Badge', badgeSelect)]));
@@ -466,6 +476,13 @@ function productEditForm(p, categories, removeLocal, refreshAll) {
   featuredSw.addEventListener('click', () => { featured = !featured; featuredSw.className = 'switch' + (featured ? ' on' : ''); });
   featuredWrap.appendChild(featuredSw); featuredWrap.appendChild(el('label', {}, ['Destacado en Home ("Drop 01") — se muestran los primeros 3 marcados']));
   form.appendChild(featuredWrap);
+
+  const onSaleWrap = el('div', { class: 'toggle-row' });
+  const onSaleSw = el('div', { class: 'switch' + (onSale ? ' on' : '') });
+  onSaleSw.addEventListener('click', () => { onSale = !onSale; onSaleSw.className = 'switch' + (onSale ? ' on' : ''); });
+  onSaleWrap.appendChild(onSaleSw); onSaleWrap.appendChild(el('label', {}, ['Marcar como oferta']));
+  form.appendChild(onSaleWrap);
+  form.appendChild(field('Precio oferta (UYU) — opcional', salePriceInput));
 
   const sizesField = el('div', { class: 'field' });
   sizesField.appendChild(el('label', {}, ['Talles']));
@@ -541,7 +558,7 @@ function productEditForm(p, categories, removeLocal, refreshAll) {
         name: nameInput.value.trim(),
         price: priceInput.value === '' ? null : Number(priceInput.value),
         cat: catSelect.value, status: statusSelect.value, badge: badgeSelect.value,
-        unique, featured, sizes,
+        unique, featured, onSale, salePrice: salePriceInput.value === '' ? null : Number(salePriceInput.value), sizes,
         description: descTextarea.value, materials: materialsTextarea.value, shippingReturns: shippingTextarea.value
       });
       status.textContent = 'Guardado.'; status.className = 'status-msg ok';
@@ -561,12 +578,14 @@ function productEditForm(p, categories, removeLocal, refreshAll) {
   return form;
 }
 
+const STATUS_LABELS = { published: 'Publicado', sold: 'Vendido' };
+
 function productItem(p, categories, removeLocal, refreshAll) {
   const wrap = el('div', {});
   const summary = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;gap:12px' });
   summary.appendChild(el('div', {}, [
     el('div', { class: 'list-card-title' }, [p.name + (p.featured ? ' ★' : '')]),
-    el('div', { class: 'list-card-sub' }, [p.cat + ' · ' + p.status + (p.price != null ? ' · $ ' + formatThousands(p.price) : ' · sin precio') + (p.unique ? ' · 1/1' : '')])
+    el('div', { class: 'list-card-sub' }, [p.cat + ' · ' + (STATUS_LABELS[p.status] || p.status) + (p.price != null ? ' · $ ' + formatThousands(p.price) : ' · sin precio') + (p.unique ? ' · 1/1' : '') + (p.onSale ? ' · OFERTA' : '')])
   ]));
   const toggleBtn = el('button', { class: 'btn btn-sm' }, [expandedProducts.has(p.id) ? 'Cerrar' : 'Editar']);
   toggleBtn.addEventListener('click', () => {
@@ -591,7 +610,7 @@ async function renderProducts(main) {
   }));
   const addBtn = el('button', { class: 'btn' }, ['+ Nuevo producto']);
   addBtn.addEventListener('click', async () => {
-    const p = await api.createProduct({ name: 'Producto nuevo', cat: categories[0] ? categories[0].name : '', status: 'coming' });
+    const p = await api.createProduct({ name: 'Producto nuevo', cat: categories[0] ? categories[0].name : '', status: 'published' });
     expandedProducts.add(p.id);
     renderProducts(main);
   });
@@ -717,6 +736,8 @@ async function renderArchives(main) {
   main.appendChild(addBtn);
 }
 
+const SHIPPING_LABELS = { pickup: 'Pick up centro', cadete: 'Cadete', dac: 'DAC (interior)' };
+
 async function renderOrders(main) {
   main.innerHTML = '';
   main.appendChild(el('h2', {}, ['Pedidos']));
@@ -724,10 +745,11 @@ async function renderOrders(main) {
   const orders = await api.getOrders();
   if (!orders.length) { main.appendChild(el('div', { class: 'empty-note' }, ['Todavía no hay pedidos.'])); return; }
   const table = el('table', { class: 'orders' });
-  table.appendChild(el('thead', {}, [el('tr', {}, ['#', 'Fecha', 'Cliente', 'Items', 'Total', 'Estado'].map(h => el('th', {}, [h])))]));
+  table.appendChild(el('thead', {}, [el('tr', {}, ['#', 'Fecha', 'Cliente', 'Items', 'Envío', 'Total', 'Estado'].map(h => el('th', {}, [h])))]));
   const tbody = el('tbody');
   orders.forEach(o => {
     const itemsText = o.items.map(it => it.name + (it.size ? ' (' + it.size + ')' : '') + ' x' + it.qty).join(', ');
+    const shippingText = (SHIPPING_LABELS[o.shippingMethod] || o.shippingMethod || '—') + (o.shippingNotes ? ' — ' + o.shippingNotes : '');
     const statusSelect = el('select');
     [['pendiente', 'Pendiente'], ['aprobado', 'Aprobado'], ['rechazado', 'Rechazado']].forEach(([v, l]) => {
       const opt = el('option', { value: v }, [l]); if (v === o.status) opt.selected = true; statusSelect.appendChild(opt);
@@ -741,12 +763,23 @@ async function renderOrders(main) {
       el('td', {}, [new Date(o.createdAt).toLocaleString('es-UY')]),
       el('td', {}, [el('div', {}, [o.name]), el('div', { class: 'list-card-sub' }, [o.email])]),
       el('td', {}, [itemsText || '—']),
+      el('td', {}, [shippingText]),
       el('td', {}, ['$ ' + formatThousands(o.total)]),
       el('td', {}, [statusSelect])
     ]));
   });
   table.appendChild(tbody);
   main.appendChild(table);
+}
+
+async function renderShipping(main) {
+  main.innerHTML = '';
+  main.appendChild(el('h2', {}, ['Envíos']));
+  main.appendChild(el('p', { class: 'section-hint' }, ['Costo del envío por cadete en Montevideo. El retiro en pick up centro y el envío al interior por DAC no tienen costo extra en el checkout.']));
+  const settings = await api.getSettings();
+  buildSettingsForm(main, settings, [
+    { key: 'shipping_cadete_cost', label: 'Costo cadete (Montevideo) — UYU' }
+  ]);
 }
 
 // ------------------------------------------------------------------ shell
@@ -761,6 +794,7 @@ const SECTIONS = [
   { key: 'cta', label: 'CTA "¿Tenés una idea?"', render: renderCta },
   { key: 'custom', label: 'Página Custom', render: renderCustomPage },
   { key: 'about', label: 'Página About', render: renderAbout },
+  { key: 'shipping', label: 'Envíos', render: renderShipping },
   { key: 'archives', label: 'Archivos', render: renderArchives },
   { key: 'orders', label: 'Pedidos', render: renderOrders }
 ];

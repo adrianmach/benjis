@@ -50,6 +50,8 @@ router.get('/products', async (req, res) => {
       materials: p.materials || '',
       shippingReturns: p.shipping_returns || '',
       featured: !!p.featured,
+      onSale: !!p.on_sale,
+      salePrice: p.sale_price,
       images: (p.images || []).map(img => img.url)
     })));
   } catch (err) {

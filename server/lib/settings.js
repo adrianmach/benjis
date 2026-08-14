@@ -10,7 +10,9 @@ export const SETTINGS_KEYS = [
   'custom_title_1', 'custom_title_2', 'custom_paragraph', 'custom_image_url',
   'about_subtitle', 'about_proceso_title', 'about_proceso_paragraph', 'about_proceso_image_url',
   'about_materiales_title_1', 'about_materiales_title_2', 'about_materiales_paragraph',
-  'about_materiales_link_text', 'about_materiales_image_url'
+  'about_materiales_link_text', 'about_materiales_image_url',
+  'about_sobremi_title', 'about_sobremi_paragraph', 'about_sobremi_image_url',
+  'shipping_cadete_cost'
 ];
 
 export const BOOLEAN_SETTINGS = new Set(['banner_visible']);

@@ -86,6 +86,7 @@ router.post('/media/hero/:slot', ah(async (req, res) => {
 const SINGLE_IMAGE_TARGETS = {
   'about-proceso': { subdir: 'about', settingKey: 'about_proceso_image_url' },
   'about-materiales': { subdir: 'about', settingKey: 'about_materiales_image_url' },
+  'about-sobremi': { subdir: 'about', settingKey: 'about_sobremi_image_url' },
   custom: { subdir: 'custom', settingKey: 'custom_image_url' },
   gallery: { subdir: 'gallery', settingKey: 'gallery_image_url' }
 };
@@ -111,7 +112,7 @@ function serializeProduct(p) {
     id: Number(p.id), name: p.name, price: p.price, cat: p.cat, status: p.status,
     unique: !!p.unique_piece, badge: p.badge || '', sizes: p.sizes || [],
     description: p.description || '', materials: p.materials || '', shippingReturns: p.shipping_returns || '',
-    featured: !!p.featured, sortOrder: p.sort_order,
+    featured: !!p.featured, onSale: !!p.on_sale, salePrice: p.sale_price, sortOrder: p.sort_order,
     images: (p.images || []).map(img => ({ id: img.id, url: img.url }))
   };
 }
@@ -132,7 +133,9 @@ router.post('/products', ah(async (req, res) => {
     cat: b.cat || '', status: b.status || 'published', unique_piece: !!b.unique, badge: b.badge || null,
     sizes: Array.isArray(b.sizes) ? b.sizes : [],
     description: b.description || '', materials: b.materials || '', shipping_returns: b.shippingReturns || '',
-    featured: !!b.featured, sort_order: (maxRow?.sort_order ?? -1) + 1
+    featured: !!b.featured, on_sale: !!b.onSale,
+    sale_price: b.salePrice === '' || b.salePrice === null || b.salePrice === undefined ? null : Number(b.salePrice),
+    sort_order: (maxRow?.sort_order ?? -1) + 1
   }).select().single();
   if (error) throw error;
   res.status(201).json(serializeProduct(data));
@@ -154,7 +157,9 @@ router.put('/products/:id', ah(async (req, res) => {
     description: b.description !== undefined ? b.description : existing.description,
     materials: b.materials !== undefined ? b.materials : existing.materials,
     shipping_returns: b.shippingReturns !== undefined ? b.shippingReturns : existing.shipping_returns,
-    featured: b.featured !== undefined ? !!b.featured : existing.featured
+    featured: b.featured !== undefined ? !!b.featured : existing.featured,
+    on_sale: b.onSale !== undefined ? !!b.onSale : existing.on_sale,
+    sale_price: b.salePrice === '' || b.salePrice === null ? null : (b.salePrice !== undefined ? Number(b.salePrice) : existing.sale_price)
   };
   const { data, error } = await supabase.from('benjis_products').update(patch).eq('id', req.params.id).select().single();
   if (error) throw error;
@@ -439,6 +444,7 @@ router.get('/orders', ah(async (req, res) => {
   res.json(data.map(o => ({
     id: Number(o.id), name: o.name, email: o.email, phone: o.phone, address: o.address,
     items: o.items || [], total: o.total, status: o.status,
+    shippingMethod: o.shipping_method, shippingNotes: o.shipping_notes, shippingCost: o.shipping_cost,
     mpPreferenceId: o.mp_preference_id, mpPaymentId: o.mp_payment_id, createdAt: o.created_at
   })));
 }));

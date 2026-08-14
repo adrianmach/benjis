@@ -66,6 +66,8 @@ create table if not exists benjis_products (
   materials text not null default '',
   shipping_returns text not null default '',
   featured boolean not null default false,
+  on_sale boolean not null default false,
+  sale_price integer,
   sort_order integer not null default 0,
   images jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
@@ -112,6 +114,9 @@ create table if not exists benjis_orders (
   items jsonb not null default '[]'::jsonb,
   total integer not null,
   status text not null default 'pendiente',
+  shipping_method text not null default 'pickup',
+  shipping_notes text not null default '',
+  shipping_cost integer not null default 0,
   mp_preference_id text,
   mp_payment_id text,
   created_at timestamptz not null default now(),
@@ -162,7 +167,11 @@ insert into benjis_content (key, value) values
   ('about_materiales_title_2', 'recuperados'),
   ('about_materiales_paragraph', 'Las piezas únicas nacen de materiales que ya tuvieron una vida. Por eso son 1/1. [ Editable desde el CMS ]'),
   ('about_materiales_link_text', 'Pedí tu custom →'),
-  ('about_materiales_image_url', '')
+  ('about_materiales_image_url', ''),
+  ('about_sobremi_title', 'Sobre mí'),
+  ('about_sobremi_paragraph', 'Contá acá quién está detrás de Benji$: tu historia, por qué empezaste, qué te inspira. [ Editable desde el CMS ]'),
+  ('about_sobremi_image_url', ''),
+  ('shipping_cadete_cost', '200')
 on conflict (key) do nothing;
 
 insert into benjis_content (key, value) values
@@ -188,14 +197,14 @@ select * from (values
   ('BALACLAVA 01', null::integer, 'BALACLAVAS', 'published', false, null::text, '["S","M","L"]'::jsonb, 'Balaclava de punto grueso con terminaciones a mano. Abrigo y estilo en una sola pieza.', '', '', true, 0),
   ('BALACLAVA 02', null::integer, 'BALACLAVAS', 'published', false, null::text, '["M","L","XL"]'::jsonb, 'Balaclava de algodón liviano, ideal para entretiempo. Corte relajado.', '', '', true, 1),
   ('BALACLAVA 03', null::integer, 'BALACLAVAS', 'published', false, null::text, '["S","M","L","XL"]'::jsonb, 'Balaclava oversize de frisa rústica. Doble capa en la zona del cuello.', '', '', false, 2),
-  ('BALACLAVA 04', null::integer, 'BALACLAVAS', 'coming', false, 'COMING SOON', '[]'::jsonb, '', '', '', false, 3),
-  ('BALACLAVA 05', null::integer, 'BALACLAVAS', 'coming', false, 'COMING SOON', '[]'::jsonb, '', '', '', false, 4),
-  ('BALACLAVA 06', null::integer, 'BALACLAVAS', 'coming', false, 'COMING SOON', '[]'::jsonb, '', '', '', false, 5),
+  ('BALACLAVA 04', null::integer, 'BALACLAVAS', 'published', false, null::text, '[]'::jsonb, '', '', '', false, 3),
+  ('BALACLAVA 05', null::integer, 'BALACLAVAS', 'published', false, null::text, '[]'::jsonb, '', '', '', false, 4),
+  ('BALACLAVA 06', null::integer, 'BALACLAVAS', 'published', false, null::text, '[]'::jsonb, '', '', '', false, 5),
   ('RIÑONERA 01', null::integer, 'RIÑONERAS', 'published', true, '1/1', '["ÚNICA"]'::jsonb, 'Riñonera hecha con materiales recuperados. Pieza única e irrepetible.', '', '', true, 6),
   ('RIÑONERA 02', null::integer, 'RIÑONERAS', 'published', true, '1/1', '["ÚNICA"]'::jsonb, 'Riñonera artesanal con cierre YKK y correa ajustable. Pieza 1/1.', '', '', false, 7),
-  ('RIÑONERA 03', null::integer, 'RIÑONERAS', 'sold', true, 'SOLD OUT', '[]'::jsonb, '', '', '', false, 8),
-  ('BUZO 01', null::integer, 'BUZOS', 'coming', false, 'COMING SOON', '[]'::jsonb, 'Buzo oversize de frisa rústica con capucha y bolsillos asimétricos.', '', '', false, 9),
-  ('BUZO 02', null::integer, 'BUZOS', 'coming', false, 'COMING SOON', '[]'::jsonb, 'Buzo liviano con estampa serigráfica y corte boxy.', '', '', false, 10)
+  ('RIÑONERA 03', null::integer, 'RIÑONERAS', 'sold', true, 'AGOTADO', '[]'::jsonb, '', '', '', false, 8),
+  ('BUZO 01', null::integer, 'BUZOS', 'published', false, null::text, '[]'::jsonb, 'Buzo oversize de frisa rústica con capucha y bolsillos asimétricos.', '', '', false, 9),
+  ('BUZO 02', null::integer, 'BUZOS', 'published', false, null::text, '[]'::jsonb, 'Buzo liviano con estampa serigráfica y corte boxy.', '', '', false, 10)
 ) as v(name, price, cat, status, unique_piece, badge, sizes, description, materials, shipping_returns, featured, sort_order)
 where not exists (select 1 from benjis_products);
 

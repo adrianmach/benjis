@@ -194,6 +194,9 @@ button{font:inherit}
 .product-info-panel .back{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
 .product-info-panel h1{margin:0;font-family:'Anton',sans-serif;font-size:44px;font-weight:400;text-transform:uppercase;line-height:1.05}
 .product-price{font-size:22px;letter-spacing:.06em;font-weight:500}
+.price-row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.price-strike{font-size:16px;text-decoration:line-through;color:var(--muted);font-weight:400}
+.price-sale{color:var(--accent)}
 .product-desc{margin:0;color:var(--muted);font-size:14px;line-height:1.75;max-width:42ch}
 .product-origin{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 .buy-box{border-top:1px solid var(--line);padding-top:22px;display:flex;flex-direction:column;gap:18px}
@@ -213,9 +216,9 @@ button{font:inherit}
 .add-to-cart-row{display:flex;gap:12px;align-items:stretch;margin-top:6px}
 .btn-solid{flex:1;text-align:center;background:var(--fg);color:var(--bg);padding:16px 0;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;border:none;cursor:pointer;font-family:'Archivo',sans-serif}
 .btn-solid:hover{background:var(--accent);color:var(--bg)}
+.btn-solid:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
 .wish-btn{border:1px solid var(--line2);display:flex;align-items:center;padding:0 18px}
 .wish-btn:hover{border-color:var(--accent);color:var(--accent)}
-.coming-soon-box{border:1px solid var(--line2);padding:16px;text-align:center;font-size:12px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:var(--muted)}
 .accordion{border-top:1px solid var(--line);padding-top:4px;display:flex;flex-direction:column;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
 .accordion-row{border-bottom:1px solid var(--line)}
 .accordion-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;padding:16px 0;color:var(--muted);background:none;border:none;cursor:pointer;font:inherit;letter-spacing:inherit;text-transform:inherit}
@@ -244,6 +247,16 @@ button{font:inherit}
 .checkout-line .size-note{color:var(--dim);font-size:10px}
 .checkout-line .total-col{color:var(--muted);white-space:nowrap}
 .checkout-total{display:flex;justify-content:space-between;font-size:15px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-top:1px solid var(--line);padding-top:16px}
+.shipping-options{display:flex;flex-direction:column;gap:12px;font-size:13px;font-weight:400;letter-spacing:.02em;text-transform:none;color:var(--fg)}
+.shipping-options label{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.shipping-options input{margin-top:3px}
+.conditions-box{border:1px solid var(--line2);padding:18px;max-height:240px;overflow-y:auto;font-size:13px;line-height:1.7;color:var(--muted)}
+.conditions-box h3{margin:0 0 10px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--fg)}
+.conditions-box h3:not(:first-child){margin-top:20px}
+.conditions-box p{margin:0 0 12px}
+.conditions-box p:last-child{margin-bottom:0}
+.conditions-accept{display:flex;align-items:flex-start;gap:10px;font-size:12px;font-weight:400;letter-spacing:.02em;text-transform:none;color:var(--muted);cursor:pointer}
+.conditions-accept input{margin-top:3px}
 
 /* ---------- order status ---------- */
 .order-status-main{padding:130px 40px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:26px}
@@ -355,12 +368,12 @@ button{font:inherit}
 <header id="header-mobile" class="header header-mobile">
   <button class="hamburger-btn" data-action="toggleMenu" aria-label="Abrir menú">☰</button>
   <button class="logo-btn" data-action="goHome"><img src="assets/logo-wordmark.png" alt="Benji$"></button>
-  <a href="#" class="bag-link" data-action="openCart">BAG (<span class="cart-count">0</span>)</a>
+  <a href="#" class="bag-link" data-action="openCart">BOLSA (<span class="cart-count">0</span>)</a>
 </header>
 <div id="mobile-menu-overlay" class="mobile-menu-overlay" data-action="closeMenu"></div>
 <nav id="mobile-menu" class="mobile-menu">
   <button class="mobile-menu-close" data-action="closeMenu" aria-label="Cerrar menú">✕</button>
-  <a href="#" data-action="goShop" data-nav="shop">Shop</a>
+  <a href="#" data-action="goShop" data-nav="shop">Tienda</a>
   <a href="#" data-action="goArchive" data-nav="archive">Archivos</a>
   <a href="#" data-action="goCustom" data-nav="custom">Custom</a>
   <a href="#" data-action="goAbout" data-nav="about">About</a>
@@ -373,15 +386,15 @@ button{font:inherit}
 <header id="header-desktop" class="header header-desktop">
   <button class="logo-btn" data-action="goHome"><img src="assets/logo-wordmark.png" alt="Benji$"></button>
   <nav class="nav-desktop">
-    <a href="#" data-action="goShop" data-nav="shop">Shop</a>
+    <a href="#" data-action="goShop" data-nav="shop">Tienda</a>
     <a href="#" data-action="goArchive" data-nav="archive">Archivos</a>
     <a href="#" data-action="goCustom" data-nav="custom">Custom</a>
     <a href="#" data-action="goAbout" data-nav="about">About</a>
   </nav>
   <div class="header-actions">
-    <a href="#">Search</a>
+    <a href="#">Buscar</a>
     <a href="#">♡</a>
-    <a href="#" class="bag-link" data-action="openCart">Bag (<span class="cart-count">0</span>)</a>
+    <a href="#" class="bag-link" data-action="openCart">Bolsa (<span class="cart-count">0</span>)</a>
   </div>
 </header>
 
@@ -391,8 +404,8 @@ button{font:inherit}
   <div class="footer-grid">
     <img src="assets/logo-b.png" alt="B">
     <div class="footer-col">
-      <span class="head">Shop</span>
-      <a href="#" data-action="goShop">Shop</a>
+      <span class="head">Tienda</span>
+      <a href="#" data-action="goShop">Tienda</a>
       <a href="#" data-action="goCustom">Custom</a>
       <a href="#" data-action="goAbout">About</a>
     </div>
@@ -404,8 +417,7 @@ button{font:inherit}
     <div class="footer-col">
       <span class="head">Info</span>
       <a href="#">Envíos</a>
-      <a href="#">Cambios</a>
-      <a href="#">FAQ</a>
+      <a href="#">Política</a>
     </div>
   </div>
   <div class="footer-bottom">
@@ -439,19 +451,18 @@ function isMobile() { return window.innerWidth < 768; }
 
 /* ==================== default content (fallback until CMS loads) ==================== */
 function defaultProducts() {
-  const cs = 'COMING SOON';
   return [
     { name: 'BALACLAVA 01', price: null, cat: 'BALACLAVAS', status: 'published', sizes: ['S','M','L'], desc: 'Balaclava de punto grueso con terminaciones a mano. Abrigo y estilo en una sola pieza.' },
     { name: 'BALACLAVA 02', price: null, cat: 'BALACLAVAS', status: 'published', sizes: ['M','L','XL'], desc: 'Balaclava de algodón liviano, ideal para entretiempo. Corte relajado.' },
     { name: 'BALACLAVA 03', price: null, cat: 'BALACLAVAS', status: 'published', sizes: ['S','M','L','XL'], desc: 'Balaclava oversize de frisa rústica. Doble capa en la zona del cuello.' },
-    { name: 'BALACLAVA 04', price: null, cat: 'BALACLAVAS', status: 'coming', tag: cs, sizes: [] },
-    { name: 'BALACLAVA 05', price: null, cat: 'BALACLAVAS', status: 'coming', tag: cs, sizes: [] },
-    { name: 'BALACLAVA 06', price: null, cat: 'BALACLAVAS', status: 'coming', tag: cs, sizes: [] },
+    { name: 'BALACLAVA 04', price: null, cat: 'BALACLAVAS', status: 'published', sizes: [] },
+    { name: 'BALACLAVA 05', price: null, cat: 'BALACLAVAS', status: 'published', sizes: [] },
+    { name: 'BALACLAVA 06', price: null, cat: 'BALACLAVAS', status: 'published', sizes: [] },
     { name: 'RIÑONERA 01', price: null, cat: 'RIÑONERAS', status: 'published', unique: true, tag: '1/1', sizes: ['ÚNICA'], desc: 'Riñonera hecha con materiales recuperados. Pieza única e irrepetible.' },
     { name: 'RIÑONERA 02', price: null, cat: 'RIÑONERAS', status: 'published', unique: true, tag: '1/1', sizes: ['ÚNICA'], desc: 'Riñonera artesanal con cierre YKK y correa ajustable. Pieza 1/1.' },
-    { name: 'RIÑONERA 03', price: null, cat: 'RIÑONERAS', status: 'sold', unique: true, tag: 'SOLD OUT', sizes: [], desc: '' },
-    { name: 'BUZO 01', price: null, cat: 'BUZOS', status: 'coming', tag: cs, sizes: [], desc: 'Buzo oversize de frisa rústica con capucha y bolsillos asimétricos.' },
-    { name: 'BUZO 02', price: null, cat: 'BUZOS', status: 'coming', tag: cs, sizes: [], desc: 'Buzo liviano con estampa serigráfica y corte boxy.' }
+    { name: 'RIÑONERA 03', price: null, cat: 'RIÑONERAS', status: 'sold', unique: true, tag: 'AGOTADO', sizes: [], desc: '' },
+    { name: 'BUZO 01', price: null, cat: 'BUZOS', status: 'published', sizes: [], desc: 'Buzo oversize de frisa rústica con capucha y bolsillos asimétricos.' },
+    { name: 'BUZO 02', price: null, cat: 'BUZOS', status: 'published', sizes: [], desc: 'Buzo liviano con estampa serigráfica y corte boxy.' }
   ];
 }
 function defaultArchives() {
@@ -481,6 +492,9 @@ const state = {
   accOpen: null,
   checkoutSubmitting: false,
   checkoutError: '',
+  shippingMethod: 'pickup',
+  shippingNotes: '',
+  conditionsAccepted: false,
   orderStatus: null,
   orderRef: ''
 };
@@ -495,10 +509,16 @@ function allProducts() { return cms.products || defaultProducts(); }
 function allArchives() { return cms.archives || defaultArchives(); }
 
 function decorate(p, all) {
-  const price = p.price != null ? formatPrice(p.price) : (p.status === 'coming' ? '' : '$ X.XXX');
+  const onSale = !!p.onSale && p.salePrice != null;
+  const effectivePrice = onSale ? p.salePrice : p.price;
   return {
     raw: p,
-    id: p.id, name: p.name, price, tag: p.tag || '', desc: p.desc || '',
+    id: p.id, name: p.name,
+    price: effectivePrice != null ? formatPrice(effectivePrice) : '$ X.XXX',
+    priceNum: effectivePrice,
+    priceOriginal: p.price != null ? formatPrice(p.price) : '$ X.XXX',
+    onSale,
+    tag: onSale ? 'OFERTA' : (p.tag || ''), desc: p.desc || '',
     materials: p.materials || '', shippingReturns: p.shippingReturns || '',
     placeholder: 'FOTO ' + p.name,
     image1: (p.images && p.images[0]) || '', image2: (p.images && p.images[1]) || '',
@@ -599,7 +619,7 @@ function addToCart(prod) {
   if (existingIdx >= 0) {
     state.cart[existingIdx].qty += state.qty;
   } else {
-    state.cart.push({ productId: prod.id, name: prod.name, price: prod.raw.price, size: state.selSize, qty: state.qty });
+    state.cart.push({ productId: prod.id, name: prod.name, price: prod.priceNum, size: state.selSize, qty: state.qty });
   }
   saveCart();
   state.qty = 1;
@@ -736,12 +756,13 @@ function renderShop() {
   const idx = Math.min(state.shopIdx || 0, Math.max(0, filtered.length - 1));
   state.shopIdx = idx;
   const catNames = ['ALL', ...(cms.categories || ['BUZOS', 'BALACLAVAS', 'RIÑONERAS']), 'ÚNICOS'];
-  const cats = catNames.map(c => `<a href="#" data-action="pickCat" data-cat="${esc(c)}" style="color:${state.cat === c ? 'var(--fg)' : 'var(--muted)'};border-color:${state.cat === c ? accent() : 'transparent'}">${esc(c)}</a>`).join('');
+  const catLabel = c => c === 'ALL' ? 'TODOS' : c;
+  const cats = catNames.map(c => `<a href="#" data-action="pickCat" data-cat="${esc(c)}" style="color:${state.cat === c ? 'var(--fg)' : 'var(--muted)'};border-color:${state.cat === c ? accent() : 'transparent'}">${esc(catLabel(c))}</a>`).join('');
   const items = filtered.map((p, i) => shopItemHtml(p, i, i === idx, all)).join('');
   const sel = filtered[idx];
   const selDeco = sel ? decorate(sel, all) : null;
   return `
-    <h1>${esc(state.cat === 'ALL' ? 'Shop' : state.cat.toLowerCase())}</h1>
+    <h1>${esc(state.cat === 'ALL' ? 'Tienda' : state.cat.toLowerCase())}</h1>
     <div class="shop-cats" id="shop-cats">${cats}</div>
     <div class="shop-carousel">
       <button class="carousel-nav prev" data-action="shopPrev" aria-label="Producto anterior" ${idx <= 0 ? 'disabled' : ''}>←</button>
@@ -760,9 +781,10 @@ function shopItemHtml(p, i, sel, all) {
   const h = sel ? (m ? '50vh' : '62vh') : (m ? '34vh' : '42vh');
   const w = (sel ? (m ? CAROUSEL.mLW : CAROUSEL.LW) : (m ? CAROUSEL.mSW : CAROUSEL.SW)) + 'px';
   const o = p.status === 'sold' ? (sel ? '.7' : '.3') : (sel ? '1' : '.5');
-  const tagBg = d.tag === '1/1' ? accent() : 'var(--bg)';
-  const tagColor = d.tag === '1/1' ? 'var(--bg)' : 'var(--muted)';
-  const tagBorder = d.tag === '1/1' ? accent() : 'var(--line2)';
+  const highlight = d.tag === '1/1' || d.tag === 'OFERTA';
+  const tagBg = highlight ? accent() : 'var(--bg)';
+  const tagColor = highlight ? 'var(--bg)' : 'var(--muted)';
+  const tagBorder = highlight ? accent() : 'var(--line2)';
   return `
     <div class="carousel-item" data-action="pickCarouselItem" data-i="${i}" style="height:${h};width:${w};opacity:${o}">
       ${d.image1 ? `<img src="${esc(d.image1)}" alt="${esc(d.name)}">` : `<span class="placeholder-text">[ ${esc(d.placeholder)} ]</span>`}
@@ -818,7 +840,6 @@ function renderProduct() {
   const raw = all[state.prodIdx] || all[0];
   const p = decorate(raw, all);
   const buyable = p.status === 'published';
-  const comingSoon = p.status === 'coming';
   const accordionRows = [
     { key: 'desc', label: 'Descripción', content: p.desc || 'Sin descripción cargada.' },
     { key: 'materials', label: 'Materiales', content: p.materials || 'Sin información de materiales cargada.' },
@@ -835,7 +856,7 @@ function renderProduct() {
   const sizesHtml = p.sizes.length ? `
     <div class="field-group">
       <div style="display:flex;align-items:baseline;gap:10px">
-        <span class="field-label">Size</span>
+        <span class="field-label">Talle</span>
         <span class="size-required">(campo obligatorio)</span>
       </div>
       <div class="size-grid" id="size-grid">
@@ -851,9 +872,11 @@ function renderProduct() {
       ${mediaBox(p.image2, p.name, p.placeholder + ' — FOTO 2 / DETALLE')}
     </div>
     <div class="product-info-panel">
-      <a href="#" class="back" data-action="goShop">← Shop</a>
+      <a href="#" class="back" data-action="goShop">← Tienda</a>
       <h1>${esc(p.name)}</h1>
-      <span class="product-price">${esc(p.price)}</span>
+      ${p.onSale
+        ? `<div class="price-row"><span class="product-price price-strike">${esc(p.priceOriginal)}</span><span class="product-price price-sale">${esc(p.price)}</span></div>`
+        : `<span class="product-price">${esc(p.price)}</span>`}
       ${p.tag ? `<span class="card-tag" style="position:static;align-self:flex-start">${esc(p.tag)}</span>` : ''}
       <p class="product-desc">${esc(p.desc)}</p>
       <span class="product-origin">Diseñado y producido en Uruguay</span>
@@ -882,7 +905,6 @@ function renderProduct() {
         </div>
       </div>
       ` : ''}
-      ${comingSoon ? `<div class="coming-soon-box">Coming soon</div>` : ''}
       <div class="accordion" id="accordion">${accordionHtml}</div>
       <a href="${esc(waUrl)}" target="_blank" rel="noopener noreferrer" class="whatsapp-link">Consultar por WhatsApp →</a>
     </div>
@@ -944,6 +966,18 @@ function onSubmitCustomForm(e) {
 }
 
 /* ---- checkout ---- */
+const SHIPPING_OPTIONS = [
+  { value: 'pickup', label: 'Retirar en pick up centro (Montevideo)' },
+  { value: 'cadete', label: 'Cadete (Montevideo)' },
+  { value: 'dac', label: 'Envío al interior por DAC' }
+];
+function shippingCostFor(method) {
+  return method === 'cadete' ? (Number(settingsVal('shipping_cadete_cost', 0)) || 0) : 0;
+}
+function checkoutSubtotalNum() {
+  return state.cart.reduce((sum, it) => sum + (it.price || 0) * it.qty, 0);
+}
+
 function renderCheckout() {
   const lines = state.cart.map(it => `
     <div class="checkout-line">
@@ -954,13 +988,22 @@ function renderCheckout() {
       <span class="total-col">${esc(it.price != null ? formatPrice(it.price * it.qty) : '$ X.XXX')}</span>
     </div>
   `).join('');
+  const shipCost = shippingCostFor(state.shippingMethod);
+  const shipDisplay = shipCost > 0 ? formatPrice(shipCost) : (state.shippingMethod === 'dac' ? 'A coordinar' : 'Sin costo');
+  const total = formatPrice(checkoutSubtotalNum() + shipCost) || '$ 0';
+  const cadeteCost = Number(settingsVal('shipping_cadete_cost', 0)) || 0;
+  const shippingOptionsHtml = SHIPPING_OPTIONS.map(opt => {
+    const extra = opt.value === 'cadete' ? (cadeteCost > 0 ? ` — +${esc(formatPrice(cadeteCost))}` : ' — costo a confirmar') : (opt.value === 'pickup' ? ' — sin costo' : '');
+    return `<label><input type="radio" name="shippingMethod" value="${opt.value}" ${state.shippingMethod === opt.value ? 'checked' : ''}> ${esc(opt.label)}${extra}</label>`;
+  }).join('');
   return `
     <div class="copy">
       <a href="#" class="back" data-action="goShop">← Seguir comprando</a>
       <h1>Checkout</h1>
       <div class="checkout-summary">
         ${lines}
-        <div class="checkout-total"><span>Total</span><span>${cartSubtotal()}</span></div>
+        <div class="checkout-line"><span>Envío</span><span id="checkout-ship-val">${esc(shipDisplay)}</span></div>
+        <div class="checkout-total"><span>Total</span><span id="checkout-total-val">${esc(total)}</span></div>
       </div>
     </div>
     <form class="form-col" id="checkout-form">
@@ -976,23 +1019,72 @@ function renderCheckout() {
       <label class="form-field">Dirección de envío
         <input name="address" required placeholder="Calle, número, ciudad">
       </label>
+
+      <div class="form-field">Medio de envío
+        <div class="shipping-options" id="shipping-options">${shippingOptionsHtml}</div>
+      </div>
+      <label class="form-field" id="dac-notes-field" style="display:${state.shippingMethod === 'dac' ? 'flex' : 'none'}">Datos de contacto / comentarios para el envío
+        <textarea name="shippingNotes" rows="3" placeholder="Localidad, agencia DAC preferida, teléfono de contacto…">${esc(state.shippingNotes)}</textarea>
+      </label>
+
+      <div class="conditions-box">
+        <h3>Condiciones de compra</h3>
+        <p>No realizamos cambios ni devoluciones por elección incorrecta o arrepentimiento de compra. Es responsabilidad del cliente verificar que el producto elegido sea el que desea antes de finalizar la compra.</p>
+        <p>En el caso de los productos 1/1 o confeccionados a partir de materiales recuperados, cada pieza puede presentar pequeñas variaciones, marcas, texturas, diferencias de color o detalles propios del material reutilizado y del proceso de confección. Estas características no se consideran fallas, sino parte de la identidad y singularidad de cada pieza.</p>
+        <p>Al realizar una compra de un producto 1/1, el cliente declara comprender y aceptar que el producto puede presentar este tipo de particularidades propias de los materiales recuperados.</p>
+        <p>Si tenés cualquier consulta antes de comprar, escribinos. Preferimos ayudarte a elegir antes de que realices tu compra.</p>
+        <h3>Envíos</h3>
+        <p>Todos nuestros productos son creados de manera artesanal. Contamos con un plazo de hasta 10 días hábiles para preparar y enviar tu pedido. Los tiempos de entrega dependen del servicio de envío elegido.</p>
+      </div>
+      <label class="conditions-accept">
+        <input type="checkbox" id="conditions-checkbox" ${state.conditionsAccepted ? 'checked' : ''}>
+        <span>Leí y acepto las condiciones de compra detalladas arriba.</span>
+      </label>
+
       <span class="form-error" id="checkout-error" style="display:${state.checkoutError ? 'block' : 'none'}">${esc(state.checkoutError)}</span>
-      <button type="submit" class="btn-solid" id="checkout-submit" style="background:${accent()}">${state.checkoutSubmitting ? 'Procesando…' : 'Pagar con MercadoPago →'}</button>
+      <button type="submit" class="btn-solid" id="checkout-submit" style="background:${accent()}" ${(!state.conditionsAccepted || state.checkoutSubmitting) ? 'disabled' : ''}>${state.checkoutSubmitting ? 'Procesando…' : 'Pagar con MercadoPago →'}</button>
     </form>
   `;
 }
 function afterCheckoutRender() {
   const form = document.getElementById('checkout-form');
-  if (form) form.addEventListener('submit', onSubmitCheckout);
+  if (!form) return;
+  form.addEventListener('submit', onSubmitCheckout);
+  form.querySelectorAll('input[name="shippingMethod"]').forEach(r => r.addEventListener('change', onShippingMethodChange));
+  const cb = document.getElementById('conditions-checkbox');
+  if (cb) cb.addEventListener('change', onConditionsToggle);
+  const notes = form.querySelector('textarea[name="shippingNotes"]');
+  if (notes) notes.addEventListener('input', () => { state.shippingNotes = notes.value; });
+}
+function onShippingMethodChange(e) {
+  state.shippingMethod = e.target.value;
+  const dacField = document.getElementById('dac-notes-field');
+  if (dacField) dacField.style.display = state.shippingMethod === 'dac' ? 'flex' : 'none';
+  const shipCost = shippingCostFor(state.shippingMethod);
+  const shipEl = document.getElementById('checkout-ship-val');
+  if (shipEl) shipEl.textContent = shipCost > 0 ? formatPrice(shipCost) : (state.shippingMethod === 'dac' ? 'A coordinar' : 'Sin costo');
+  const totalEl = document.getElementById('checkout-total-val');
+  if (totalEl) totalEl.textContent = formatPrice(checkoutSubtotalNum() + shipCost) || '$ 0';
+}
+function onConditionsToggle(e) {
+  state.conditionsAccepted = e.target.checked;
+  const btn = document.getElementById('checkout-submit');
+  if (btn) btn.disabled = !state.conditionsAccepted || state.checkoutSubmitting;
 }
 function onSubmitCheckout(e) {
   e.preventDefault();
+  if (!state.conditionsAccepted) {
+    setCheckoutError('Tenés que aceptar las condiciones de compra para continuar.');
+    return;
+  }
   const form = e.currentTarget;
   const fd = new FormData(form);
   const name = (fd.get('name') || '').toString().trim();
   const email = (fd.get('email') || '').toString().trim();
   const phone = (fd.get('phone') || '').toString().trim();
   const address = (fd.get('address') || '').toString().trim();
+  const shippingMethod = (fd.get('shippingMethod') || 'pickup').toString();
+  const shippingNotes = (fd.get('shippingNotes') || '').toString().trim();
   if (!name || !email || !address) {
     setCheckoutError('Completá nombre, email y dirección de envío.');
     return;
@@ -1004,7 +1096,7 @@ function onSubmitCheckout(e) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      name, email, phone, address,
+      name, email, phone, address, shippingMethod, shippingNotes,
       items: state.cart.map(it => ({ productId: it.productId, size: it.size, qty: it.qty }))
     })
   })
@@ -1031,7 +1123,7 @@ function setCheckoutError(msg) {
 }
 function setCheckoutSubmitLabel() {
   const btn = document.getElementById('checkout-submit');
-  if (btn) btn.textContent = state.checkoutSubmitting ? 'Procesando…' : 'Pagar con MercadoPago →';
+  if (btn) { btn.textContent = state.checkoutSubmitting ? 'Procesando…' : 'Pagar con MercadoPago →'; btn.disabled = !state.conditionsAccepted || state.checkoutSubmitting; }
 }
 
 /* ---- order status ---- */
@@ -1054,6 +1146,7 @@ function renderOrderStatus() {
 function renderAbout() {
   const procesoImg = settingsVal('about_proceso_image_url', '');
   const materialesImg = settingsVal('about_materiales_image_url', '');
+  const sobremiImg = settingsVal('about_sobremi_image_url', '');
   return `
     <div class="about-hero">
       <img src="assets/logo-wordmark.png" alt="Benji$">
@@ -1073,6 +1166,13 @@ function renderAbout() {
         <a href="#" data-action="goCustom">${esc(settingsVal('about_materiales_link_text', 'Pedí tu custom →'))}</a>
       </div>
       ${materialesImg ? `<div class="media-box"><img src="${esc(materialesImg)}" alt=""></div>` : `<div class="media-box"><span class="placeholder-text">[ FOTO MATERIALES ]</span></div>`}
+    </div>
+    <div class="about-row">
+      ${sobremiImg ? `<div class="media-box"><img src="${esc(sobremiImg)}" alt=""></div>` : `<div class="media-box"><span class="placeholder-text">[ FOTO SOBRE MÍ ]</span></div>`}
+      <div class="copy">
+        <h2>${esc(settingsVal('about_sobremi_title', 'Sobre mí'))}</h2>
+        <p>${esc(settingsVal('about_sobremi_paragraph', 'Contá acá quién está detrás de Benji$: tu historia, por qué empezaste, qué te inspira. [ Editable desde el CMS ]'))}</p>
+      </div>
     </div>
   `;
 }
@@ -1249,7 +1349,7 @@ document.addEventListener('click', (e) => {
     case 'goCheckout':
       if (!state.cart.length) return;
       state.cartOpen = false; syncCartDrawer();
-      goTo('checkout');
+      goTo('checkout', { shippingMethod: 'pickup', shippingNotes: '', conditionsAccepted: false, checkoutError: '' });
       break;
     case 'openCart': openCart(); break;
     case 'closeCart': closeCart(); break;

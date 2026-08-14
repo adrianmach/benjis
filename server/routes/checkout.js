@@ -11,15 +11,30 @@ import { createPreference, getPayment, validateWebhookSignature, isConfigured } 
 const checkoutApiRouter = Router();
 const checkoutRedirectRouter = Router();
 
+const SHIPPING_METHODS = new Set(['pickup', 'cadete', 'dac']);
+const SHIPPING_LABELS = { pickup: 'Retiro en pick up centro', cadete: 'Cadete', dac: 'Envío al interior por DAC' };
+
 function publicBaseUrl(req) {
   return process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`;
+}
+
+async function shippingCostFor(method) {
+  if (method !== 'cadete') return 0;
+  const { data, error } = await supabase.from('benjis_content').select('value').eq('key', 'shipping_cadete_cost').maybeSingle();
+  if (error) throw error;
+  return Number(data?.value) || 0;
 }
 
 checkoutApiRouter.post('/checkout', async (req, res) => {
   try {
     const { name, email, phone, address, items } = req.body || {};
+    const shippingMethod = SHIPPING_METHODS.has(req.body?.shippingMethod) ? req.body.shippingMethod : null;
+    const shippingNotes = req.body?.shippingNotes ? String(req.body.shippingNotes).trim() : '';
     if (!name || !String(name).trim() || !email || !String(email).trim() || !address || !String(address).trim()) {
       return res.status(400).json({ error: 'Faltan datos del pedido (nombre, email o dirección).' });
+    }
+    if (!shippingMethod) {
+      return res.status(400).json({ error: 'Elegí un medio de envío.' });
     }
     if (!Array.isArray(items) || !items.length) {
       return res.status(400).json({ error: 'El carrito está vacío.' });
@@ -34,11 +49,14 @@ checkoutApiRouter.post('/checkout', async (req, res) => {
       if (error) throw error;
       if (!product) return res.status(400).json({ error: `Producto ${productId} no encontrado.` });
       if (product.status !== 'published') return res.status(400).json({ error: `"${product.name}" no está disponible para compra.` });
-      if (product.price == null) return res.status(400).json({ error: `"${product.name}" todavía no tiene precio configurado.` });
-      const unitPrice = product.price;
+      const unitPrice = product.on_sale && product.sale_price != null ? product.sale_price : product.price;
+      if (unitPrice == null) return res.status(400).json({ error: `"${product.name}" todavía no tiene precio configurado.` });
       total += unitPrice * qty;
       lineItems.push({ productId, name: product.name, size: raw.size || null, qty, unitPrice });
     }
+
+    const shippingCost = await shippingCostFor(shippingMethod);
+    total += shippingCost;
 
     if (!isConfigured()) {
       return res.status(500).json({ error: 'MercadoPago no está configurado en el servidor (falta MERCADOPAGO_ACCESS_TOKEN).' });
@@ -48,6 +66,9 @@ checkoutApiRouter.post('/checkout', async (req, res) => {
       name: String(name).trim(),
       email: String(email).trim(),
       phone: phone ? String(phone).trim() : '',
+      shipping_method: shippingMethod,
+      shipping_notes: shippingNotes,
+      shipping_cost: shippingCost,
       address: String(address).trim(),
       items: lineItems,
       total,
@@ -58,14 +79,18 @@ checkoutApiRouter.post('/checkout', async (req, res) => {
 
     const base = publicBaseUrl(req);
     try {
+      const mpItems = lineItems.map(li => ({
+        id: String(li.productId),
+        title: li.name + (li.size ? ` (talle ${li.size})` : ''),
+        quantity: li.qty,
+        unit_price: li.unitPrice,
+        currency_id: 'UYU'
+      }));
+      if (shippingCost > 0) {
+        mpItems.push({ id: 'shipping', title: `Envío — ${SHIPPING_LABELS[shippingMethod]}`, quantity: 1, unit_price: shippingCost, currency_id: 'UYU' });
+      }
       const pref = await createPreference({
-        items: lineItems.map(li => ({
-          id: String(li.productId),
-          title: li.name + (li.size ? ` (talle ${li.size})` : ''),
-          quantity: li.qty,
-          unit_price: li.unitPrice,
-          currency_id: 'UYU'
-        })),
+        items: mpItems,
         payer: { name: String(name).trim(), email: String(email).trim() },
         external_reference: String(orderId),
         back_urls: {
