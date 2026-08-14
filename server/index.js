@@ -14,6 +14,10 @@ const PORT = process.env.PORT || 3000;
 
 const app = express();
 app.disable('x-powered-by');
+// Railway (y proxies similares) terminan TLS antes del proceso de Node;
+// sin esto Express no reconoce la conexión como segura y las cookies de
+// sesión con `secure: true` (NODE_ENV=production) pueden no funcionar bien.
+app.set('trust proxy', 1);
 app.use(express.json());
 app.use(sessionMiddleware());
 

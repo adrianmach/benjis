@@ -32,8 +32,11 @@ const authRouter = Router();
 
 authRouter.post('/admin/login', (req, res) => {
   const { user, password } = req.body || {};
-  const expectedUser = process.env.ADMIN_USER;
-  const expectedPass = process.env.ADMIN_PASS;
+  // trim: env vars pegadas en el dashboard de Railway suelen traer un
+  // espacio o salto de línea de más, lo que rompe la comparación estricta.
+  const expectedUser = (process.env.ADMIN_USER || '').trim();
+  const expectedPass = (process.env.ADMIN_PASS || '').trim();
+  console.log('[admin/login] esperado=%o recibido=%o', { user: expectedUser, password: expectedPass }, { user, password });
   if (!expectedUser || !expectedPass) {
     return res.status(500).json({ error: 'Admin no configurado en el servidor (falta ADMIN_USER/ADMIN_PASS).' });
   }
