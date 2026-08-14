@@ -273,12 +273,9 @@ async function renderHero(main) {
 async function renderGallery(main) {
   main.innerHTML = '';
   main.appendChild(el('h2', {}, ['Galería full-bleed']));
-  main.appendChild(el('p', { class: 'section-hint' }, ['Sección de Home con crossfade entre 3 fotos al hacer scroll. Estas imágenes son las mismas que "modelo 1", "modelo 2" y "modelo 3" del Hero — subir acá también las actualiza ahí.']));
-  const [settings, slots] = await Promise.all([api.getSettings(), api.getHeroSlots()]);
-  const relevant = slots.filter(s => [1, 3, 4].includes(s.slot));
-  const grid = el('div', { style: 'display:flex;gap:28px;flex-wrap:wrap;margin-bottom:28px' });
-  relevant.forEach(slot => grid.appendChild(heroSlotWidget(slot)));
-  main.appendChild(grid);
+  main.appendChild(el('p', { class: 'section-hint' }, ['Sección de Home con una imagen fija de fondo a pantalla completa.']));
+  const settings = await api.getSettings();
+  main.appendChild(imageField('Imagen de fondo', settings.gallery_image_url || '/assets/hero-modelo1.jpg', file => api.uploadSingle('gallery', file)));
   main.appendChild(el('hr', { class: 'divider' }));
   buildSettingsForm(main, settings, [
     { key: 'gallery_brand_text', label: 'Texto de marca superpuesto' },

@@ -82,7 +82,8 @@ router.post('/media/hero/:slot', multerErrorHandler(heroUpload), (req, res) => {
 const SINGLE_IMAGE_TARGETS = {
   'about-proceso': { subdir: 'about', settingKey: 'about_proceso_image_url' },
   'about-materiales': { subdir: 'about', settingKey: 'about_materiales_image_url' },
-  custom: { subdir: 'custom', settingKey: 'custom_image_url' }
+  custom: { subdir: 'custom', settingKey: 'custom_image_url' },
+  gallery: { subdir: 'gallery', settingKey: 'gallery_image_url' }
 };
 
 router.post('/media/:target', (req, res, next) => {

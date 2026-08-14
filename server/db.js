@@ -104,6 +104,7 @@ const DEFAULT_SETTINGS = {
 
   gallery_brand_text: 'Benji$',
   gallery_subtitle_text: 'Montevideo — Uruguay',
+  gallery_image_url: '',
 
   unicos_title_1: 'Únicos',
   unicos_title_2: '1/1',

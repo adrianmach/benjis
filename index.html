@@ -692,7 +692,7 @@ function renderHome() {
       <div class="drop-grid" id="drop-grid">${dropCards}</div>
     </section>
 
-    <img class="gallery-fixed-img" src="assets/hero-modelo1.jpg" alt="">
+    <img class="gallery-fixed-img" id="gallery-fixed-img" src="${esc(settingsVal('gallery_image_url', 'assets/hero-modelo1.jpg'))}" alt="">
     <div class="gallery-spacer">
       <div class="gallery-scrim"></div>
       <div class="gallery-text">
@@ -1392,6 +1392,8 @@ function refreshHomeCms() {
   `).join('');
   const unicosGrid = document.getElementById('unicos-grid');
   if (unicosGrid) unicosGrid.innerHTML = unicos.map(p => mediaBox(p.image1, p.name, p.placeholder)).join('');
+  const galleryImg = document.getElementById('gallery-fixed-img');
+  if (galleryImg) galleryImg.src = settingsVal('gallery_image_url', 'assets/hero-modelo1.jpg');
   const galleryBrand = document.getElementById('gallery-brand');
   if (galleryBrand) galleryBrand.textContent = settingsVal('gallery_brand_text', 'Benji$');
   const gallerySub = document.getElementById('gallery-sub');
