@@ -230,6 +230,24 @@ textarea { resize: vertical; min-height: 70px; }
 .chip-input { display: flex; gap: 8px; margin-top: 6px; }
 .chip-input input { flex: 1; }
 
+.field-note { color: var(--text-faint); font-size: 12px; margin: -2px 0 6px; }
+
+.size-rows, .color-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.size-row { display: flex; gap: 8px; align-items: flex-start; }
+.size-row input[type=text] { width: 70px; flex-shrink: 0; }
+.size-row textarea { flex: 1; min-height: 44px; }
+.color-row { display: flex; gap: 8px; align-items: center; }
+.color-row input[type=color] {
+  width: 40px; height: 36px; padding: 2px; flex-shrink: 0; cursor: pointer;
+  background: var(--panel-2); border: 1px solid var(--border); border-radius: var(--radius);
+}
+.color-row input[type=text] { flex: 1; }
+.remove-btn-inline {
+  background: none; border: none; color: var(--text-faint); cursor: pointer;
+  font-size: 14px; padding: 8px 4px; flex-shrink: 0;
+}
+.remove-btn-inline:hover { color: var(--danger); }
+
 .thumb-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
 .thumb {
   position: relative; width: 88px; height: 110px; border-radius: 4px; overflow: hidden;

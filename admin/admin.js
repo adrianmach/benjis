@@ -486,33 +486,59 @@ function productEditForm(p, categories, removeLocal, refreshAll) {
 
   const sizesField = el('div', { class: 'field' });
   sizesField.appendChild(el('label', {}, ['Talles']));
-  let sizes = (p.sizes || []).slice();
-  const chipList = el('div', { class: 'chip-list' });
-  function renderChips() {
-    chipList.innerHTML = '';
+  sizesField.appendChild(el('div', { class: 'field-note' }, ['Cada talle puede tener una descripción con medidas — se muestra en la ficha cuando el cliente lo selecciona.']));
+  let sizes = (p.sizes || []).map(s => (typeof s === 'string' ? { name: s, description: '' } : { name: s.name || '', description: s.description || '' }));
+  const sizeRows = el('div', { class: 'size-rows' });
+  function renderSizeRows() {
+    sizeRows.innerHTML = '';
     sizes.forEach((sz, i) => {
-      const rm = el('button', {}, ['✕']);
-      rm.addEventListener('click', () => { sizes.splice(i, 1); renderChips(); });
-      chipList.appendChild(el('div', { class: 'chip' }, [sz, rm]));
+      const nameInput = el('input', { type: 'text', placeholder: 'Ej: M' }); nameInput.value = sz.name;
+      nameInput.addEventListener('input', () => { sizes[i].name = nameInput.value; });
+      const descInput = el('textarea', { rows: 2, placeholder: 'Ej: Pecho: 52cm, Largo: 68cm, Manga: 62cm' }); descInput.value = sz.description;
+      descInput.addEventListener('input', () => { sizes[i].description = descInput.value; });
+      const rm = el('button', { class: 'remove-btn-inline' }, ['✕']);
+      rm.addEventListener('click', () => { sizes.splice(i, 1); renderSizeRows(); });
+      sizeRows.appendChild(el('div', { class: 'size-row' }, [nameInput, descInput, rm]));
     });
   }
-  renderChips();
-  sizesField.appendChild(chipList);
-  const chipInput = el('input', { type: 'text', placeholder: 'Ej: M' });
-  const chipAddBtn = el('button', { class: 'btn btn-sm' }, ['+ Agregar talle']);
-  chipAddBtn.addEventListener('click', () => {
-    const v = chipInput.value.trim().toUpperCase();
-    if (v) { sizes.push(v); chipInput.value = ''; renderChips(); }
-  });
-  sizesField.appendChild(el('div', { class: 'chip-input' }, [chipInput, chipAddBtn]));
+  renderSizeRows();
+  sizesField.appendChild(sizeRows);
+  const addSizeBtn = el('button', { class: 'btn btn-sm' }, ['+ Agregar talle']);
+  addSizeBtn.addEventListener('click', () => { sizes.push({ name: '', description: '' }); renderSizeRows(); });
+  sizesField.appendChild(addSizeBtn);
   form.appendChild(sizesField);
+
+  const colorsField = el('div', { class: 'field' });
+  colorsField.appendChild(el('label', {}, ['Colores']));
+  colorsField.appendChild(el('div', { class: 'field-note' }, ['Opcional: si no cargás ningún color, la ficha del producto no muestra el selector de color.']));
+  let colors = (p.colors || []).slice();
+  const colorRows = el('div', { class: 'color-rows' });
+  function renderColorRows() {
+    colorRows.innerHTML = '';
+    colors.forEach((c, i) => {
+      const hexInput = el('input', { type: 'color' }); hexInput.value = /^#[0-9a-fA-F]{6}$/.test(c.hex) ? c.hex : '#000000';
+      hexInput.addEventListener('input', () => { colors[i].hex = hexInput.value; });
+      const nameInput = el('input', { type: 'text', placeholder: 'Ej: Negro' }); nameInput.value = c.name;
+      nameInput.addEventListener('input', () => { colors[i].name = nameInput.value; });
+      const rm = el('button', { class: 'remove-btn-inline' }, ['✕']);
+      rm.addEventListener('click', () => { colors.splice(i, 1); renderColorRows(); });
+      colorRows.appendChild(el('div', { class: 'color-row' }, [hexInput, nameInput, rm]));
+    });
+  }
+  renderColorRows();
+  colorsField.appendChild(colorRows);
+  const addColorBtn = el('button', { class: 'btn btn-sm' }, ['+ Agregar color']);
+  addColorBtn.addEventListener('click', () => { colors.push({ name: '', hex: '#000000' }); renderColorRows(); });
+  colorsField.appendChild(addColorBtn);
+  form.appendChild(colorsField);
 
   form.appendChild(field('Descripción (se muestra siempre visible + en el acordeón)', descTextarea));
   form.appendChild(field('Materiales (acordeón)', materialsTextarea));
   form.appendChild(field('Envíos y cambios (acordeón)', shippingTextarea));
 
   const imagesField = el('div', { class: 'field' });
-  imagesField.appendChild(el('label', {}, ['Imágenes (foto principal + detalle)']));
+  imagesField.appendChild(el('label', {}, ['Imágenes']));
+  imagesField.appendChild(el('div', { class: 'field-note' }, ['Mínimo 3 imágenes por producto.']));
   const thumbRow = el('div', { class: 'thumb-row' });
   let images = p.images.slice();
   function renderThumbs() {
@@ -552,13 +578,17 @@ function productEditForm(p, categories, removeLocal, refreshAll) {
   const status = el('div', { class: 'status-msg' });
   const saveBtn = el('button', { class: 'btn btn-primary' }, ['Guardar producto']);
   saveBtn.addEventListener('click', async () => {
+    if (images.length < 3) {
+      status.textContent = 'Cargá al menos 3 imágenes antes de guardar.'; status.className = 'status-msg err';
+      return;
+    }
     saveBtn.disabled = true;
     try {
       await api.updateProduct(p.id, {
         name: nameInput.value.trim(),
         price: priceInput.value === '' ? null : Number(priceInput.value),
         cat: catSelect.value, status: statusSelect.value, badge: badgeSelect.value,
-        unique, featured, onSale, salePrice: salePriceInput.value === '' ? null : Number(salePriceInput.value), sizes,
+        unique, featured, onSale, salePrice: salePriceInput.value === '' ? null : Number(salePriceInput.value), sizes, colors,
         description: descTextarea.value, materials: materialsTextarea.value, shippingReturns: shippingTextarea.value
       });
       status.textContent = 'Guardado.'; status.className = 'status-msg ok';

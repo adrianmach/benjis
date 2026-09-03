@@ -108,10 +108,32 @@ router.post('/media/:target', ah(async (req, res) => {
 
 // ------------------------------------------------------------------ products
 
+// Talles: [{ name, description }]. Acepta strings sueltos (formato viejo)
+// por compatibilidad y los normaliza.
+function sanitizeSizes(sizes) {
+  if (!Array.isArray(sizes)) return [];
+  return sizes
+    .map(s => {
+      if (typeof s === 'string') return { name: s.trim(), description: '' };
+      if (s && typeof s === 'object') return { name: String(s.name || '').trim(), description: String(s.description || '') };
+      return null;
+    })
+    .filter(s => s && s.name);
+}
+
+// Colores opcionales: [{ name, hex }]. Un producto sin colores no muestra
+// el selector de color en la ficha.
+function sanitizeColors(colors) {
+  if (!Array.isArray(colors)) return [];
+  return colors
+    .map(c => (c && typeof c === 'object') ? { name: String(c.name || '').trim(), hex: String(c.hex || '').trim() } : null)
+    .filter(c => c && c.name && c.hex);
+}
+
 function serializeProduct(p) {
   return {
     id: Number(p.id), name: p.name, price: p.price, cat: p.cat, status: p.status,
-    unique: !!p.unique_piece, badge: p.badge || '', sizes: p.sizes || [],
+    unique: !!p.unique_piece, badge: p.badge || '', sizes: p.sizes || [], colors: p.colors || [],
     description: p.description || '', materials: p.materials || '', shippingReturns: p.shipping_returns || '',
     featured: !!p.featured, onSale: !!p.on_sale, salePrice: p.sale_price, sortOrder: p.sort_order,
     images: (p.images || []).map(img => ({ id: img.id, url: img.url, thumbUrl: img.thumbUrl || null }))
@@ -132,7 +154,7 @@ router.post('/products', ah(async (req, res) => {
     name: String(b.name).trim(),
     price: b.price === '' || b.price === null || b.price === undefined ? null : Number(b.price),
     cat: b.cat || '', status: b.status || 'published', unique_piece: !!b.unique, badge: b.badge || null,
-    sizes: Array.isArray(b.sizes) ? b.sizes : [],
+    sizes: sanitizeSizes(b.sizes), colors: sanitizeColors(b.colors),
     description: b.description || '', materials: b.materials || '', shipping_returns: b.shippingReturns || '',
     featured: !!b.featured, on_sale: !!b.onSale,
     sale_price: b.salePrice === '' || b.salePrice === null || b.salePrice === undefined ? null : Number(b.salePrice),
@@ -154,7 +176,8 @@ router.put('/products/:id', ah(async (req, res) => {
     status: b.status !== undefined ? b.status : existing.status,
     unique_piece: b.unique !== undefined ? !!b.unique : existing.unique_piece,
     badge: b.badge !== undefined ? (b.badge || null) : existing.badge,
-    sizes: b.sizes !== undefined ? (Array.isArray(b.sizes) ? b.sizes : []) : existing.sizes,
+    sizes: b.sizes !== undefined ? sanitizeSizes(b.sizes) : existing.sizes,
+    colors: b.colors !== undefined ? sanitizeColors(b.colors) : existing.colors,
     description: b.description !== undefined ? b.description : existing.description,
     materials: b.materials !== undefined ? b.materials : existing.materials,
     shipping_returns: b.shippingReturns !== undefined ? b.shippingReturns : existing.shipping_returns,

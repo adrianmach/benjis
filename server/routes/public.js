@@ -46,6 +46,7 @@ router.get('/products', async (req, res) => {
       unique: !!p.unique_piece,
       tag: p.badge || '',
       sizes: p.sizes || [],
+      colors: p.colors || [],
       desc: p.description || '',
       materials: p.materials || '',
       shippingReturns: p.shipping_returns || '',

@@ -189,6 +189,7 @@ button{font:inherit}
 .product-main{display:grid;grid-template-columns:1.25fr 1fr;gap:0;min-height:88vh}
 @media (max-width:768px){.product-main{grid-template-columns:1fr;min-height:auto}}
 .product-gallery{display:flex;flex-direction:column;gap:2px}
+.product-gallery-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2px}
 .product-info-panel{padding:70px 56px;position:sticky;top:60px;align-self:flex-start;display:flex;flex-direction:column;gap:26px}
 @media (max-width:768px){.product-info-panel{padding:28px 16px 60px;position:relative;top:0}}
 .product-info-panel .back{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
@@ -209,6 +210,7 @@ button{font:inherit}
 .size-btn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line2);background:none;color:var(--fg);font-size:12px;font-weight:600;letter-spacing:.14em;transition:all .2s ease;cursor:pointer}
 .size-btn:hover{border-color:var(--fg)}
 .size-btn.is-selected{border-color:var(--fg);background:var(--fg);color:var(--bg)}
+.size-desc{margin:0;font-size:12px;letter-spacing:.02em;text-transform:none;color:var(--muted);line-height:1.6;min-height:1.6em}
 .qty-control{display:flex;align-items:center;gap:0;border:1px solid var(--line2);align-self:flex-start}
 .qty-control button{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--muted);background:none;border:none;cursor:pointer}
 .qty-control button:hover{color:var(--fg)}
@@ -368,7 +370,7 @@ button{font:inherit}
 <header id="header-mobile" class="header header-mobile">
   <button class="hamburger-btn" data-action="toggleMenu" aria-label="Abrir menú">☰</button>
   <button class="logo-btn" data-action="goHome"><img src="assets/logo-wordmark.png" alt="Benji$" loading="lazy"></button>
-  <a href="#" class="bag-link" data-action="openCart">BOLSA (<span class="cart-count">0</span>)</a>
+  <a href="#" class="bag-link" data-action="openCart">Carrito (<span class="cart-count">0</span>)</a>
 </header>
 <div id="mobile-menu-overlay" class="mobile-menu-overlay" data-action="closeMenu"></div>
 <nav id="mobile-menu" class="mobile-menu">
@@ -376,7 +378,7 @@ button{font:inherit}
   <a href="#" data-action="goShop" data-nav="shop">Tienda</a>
   <a href="#" data-action="goArchive" data-nav="archive">Archivos</a>
   <a href="#" data-action="goCustom" data-nav="custom">Custom</a>
-  <a href="#" data-action="goAbout" data-nav="about">About</a>
+  <a href="#" data-action="goAbout" data-nav="about">Quiénes somos</a>
   <div class="mobile-menu-social">
     <a href="https://instagram.com/benjis.uy" target="_blank" rel="noopener noreferrer">Instagram</a>
     <a href="#">WhatsApp</a>
@@ -389,12 +391,12 @@ button{font:inherit}
     <a href="#" data-action="goShop" data-nav="shop">Tienda</a>
     <a href="#" data-action="goArchive" data-nav="archive">Archivos</a>
     <a href="#" data-action="goCustom" data-nav="custom">Custom</a>
-    <a href="#" data-action="goAbout" data-nav="about">About</a>
+    <a href="#" data-action="goAbout" data-nav="about">Quiénes somos</a>
   </nav>
   <div class="header-actions">
     <a href="#">Buscar</a>
     <a href="#">♡</a>
-    <a href="#" class="bag-link" data-action="openCart">Bolsa (<span class="cart-count">0</span>)</a>
+    <a href="#" class="bag-link" data-action="openCart">Carrito (<span class="cart-count">0</span>)</a>
   </div>
 </header>
 
@@ -407,7 +409,7 @@ button{font:inherit}
       <span class="head">Tienda</span>
       <a href="#" data-action="goShop">Tienda</a>
       <a href="#" data-action="goCustom">Custom</a>
-      <a href="#" data-action="goAbout">About</a>
+      <a href="#" data-action="goAbout">Quiénes somos</a>
     </div>
     <div class="footer-col">
       <span class="head">Social</span>
@@ -450,16 +452,17 @@ function formatPrice(n) {
 function isMobile() { return window.innerWidth < 768; }
 
 /* ==================== default content (fallback until CMS loads) ==================== */
+function mkSizes(names) { return names.map(n => ({ name: n, description: '' })); }
 function defaultProducts() {
   return [
-    { name: 'BALACLAVA 01', price: null, cat: 'BALACLAVAS', status: 'published', sizes: ['S','M','L'], desc: 'Balaclava de punto grueso con terminaciones a mano. Abrigo y estilo en una sola pieza.' },
-    { name: 'BALACLAVA 02', price: null, cat: 'BALACLAVAS', status: 'published', sizes: ['M','L','XL'], desc: 'Balaclava de algodón liviano, ideal para entretiempo. Corte relajado.' },
-    { name: 'BALACLAVA 03', price: null, cat: 'BALACLAVAS', status: 'published', sizes: ['S','M','L','XL'], desc: 'Balaclava oversize de frisa rústica. Doble capa en la zona del cuello.' },
+    { name: 'BALACLAVA 01', price: null, cat: 'BALACLAVAS', status: 'published', sizes: mkSizes(['S','M','L']), desc: 'Balaclava de punto grueso con terminaciones a mano. Abrigo y estilo en una sola pieza.' },
+    { name: 'BALACLAVA 02', price: null, cat: 'BALACLAVAS', status: 'published', sizes: mkSizes(['M','L','XL']), desc: 'Balaclava de algodón liviano, ideal para entretiempo. Corte relajado.' },
+    { name: 'BALACLAVA 03', price: null, cat: 'BALACLAVAS', status: 'published', sizes: mkSizes(['S','M','L','XL']), desc: 'Balaclava oversize de frisa rústica. Doble capa en la zona del cuello.' },
     { name: 'BALACLAVA 04', price: null, cat: 'BALACLAVAS', status: 'published', sizes: [] },
     { name: 'BALACLAVA 05', price: null, cat: 'BALACLAVAS', status: 'published', sizes: [] },
     { name: 'BALACLAVA 06', price: null, cat: 'BALACLAVAS', status: 'published', sizes: [] },
-    { name: 'RIÑONERA 01', price: null, cat: 'RIÑONERAS', status: 'published', unique: true, tag: '1/1', sizes: ['ÚNICA'], desc: 'Riñonera hecha con materiales recuperados. Pieza única e irrepetible.' },
-    { name: 'RIÑONERA 02', price: null, cat: 'RIÑONERAS', status: 'published', unique: true, tag: '1/1', sizes: ['ÚNICA'], desc: 'Riñonera artesanal con cierre YKK y correa ajustable. Pieza 1/1.' },
+    { name: 'RIÑONERA 01', price: null, cat: 'RIÑONERAS', status: 'published', unique: true, tag: '1/1', sizes: mkSizes(['ÚNICA']), desc: 'Riñonera hecha con materiales recuperados. Pieza única e irrepetible.' },
+    { name: 'RIÑONERA 02', price: null, cat: 'RIÑONERAS', status: 'published', unique: true, tag: '1/1', sizes: mkSizes(['ÚNICA']), desc: 'Riñonera artesanal con cierre YKK y correa ajustable. Pieza 1/1.' },
     { name: 'RIÑONERA 03', price: null, cat: 'RIÑONERAS', status: 'sold', unique: true, tag: 'AGOTADO', sizes: [], desc: '' },
     { name: 'BUZO 01', price: null, cat: 'BUZOS', status: 'published', sizes: [], desc: 'Buzo oversize de frisa rústica con capucha y bolsillos asimétricos.' },
     { name: 'BUZO 02', price: null, cat: 'BUZOS', status: 'published', sizes: [], desc: 'Buzo liviano con estampa serigráfica y corte boxy.' }
@@ -522,7 +525,8 @@ function decorate(p, all) {
     materials: p.materials || '', shippingReturns: p.shippingReturns || '',
     placeholder: 'FOTO ' + p.name,
     image1: (p.images && p.images[0]) || '', image2: (p.images && p.images[1]) || '',
-    sizes: p.sizes || [], status: p.status,
+    images: p.images || [],
+    sizes: p.sizes || [], colors: p.colors || [], status: p.status,
     idx: all.indexOf(p)
   };
 }
@@ -853,6 +857,7 @@ function renderProduct() {
       <p class="accordion-content">${esc(row.content)}</p>
     </div>
   `).join('');
+  const selectedSize = p.sizes.find(sz => sz.name === state.selSize);
   const sizesHtml = p.sizes.length ? `
     <div class="field-group">
       <div style="display:flex;align-items:baseline;gap:10px">
@@ -860,16 +865,29 @@ function renderProduct() {
         <span class="size-required">(campo obligatorio)</span>
       </div>
       <div class="size-grid" id="size-grid">
-        ${p.sizes.map(sz => `<button class="size-btn ${state.selSize === sz ? 'is-selected' : ''}" data-action="pickSize" data-size="${esc(sz)}">${esc(sz)}</button>`).join('')}
+        ${p.sizes.map(sz => `<button class="size-btn ${state.selSize === sz.name ? 'is-selected' : ''}" data-action="pickSize" data-size="${esc(sz.name)}">${esc(sz.name)}</button>`).join('')}
+      </div>
+      <p class="size-desc" id="size-desc">${selectedSize && selectedSize.description ? esc(selectedSize.name + ' — ' + selectedSize.description) : ''}</p>
+    </div>
+  ` : '';
+  const colorsHtml = p.colors.length ? `
+    <div class="field-group">
+      <span class="field-label">Color</span>
+      <div class="color-swatches">
+        ${p.colors.map(c => `<span style="background:${esc(c.hex)}" title="${esc(c.name)}"></span>`).join('')}
       </div>
     </div>
   ` : '';
+  const galleryImages = p.images.length ? p.images : ['', ''];
+  const galleryRestHtml = galleryImages.length > 1
+    ? `<div class="product-gallery-grid">${galleryImages.slice(1).map((url, i) => mediaBox(url, p.name, p.placeholder + ' — FOTO ' + (i + 2))).join('')}</div>`
+    : '';
   const waMsg = 'Hola, consulta sobre ' + p.name;
   const waUrl = 'https://wa.me/59892906993?text=' + encodeURIComponent(waMsg);
   return `
     <div class="product-gallery">
-      ${mediaBox(p.image1, p.name, p.placeholder + ' — FOTO 1')}
-      ${mediaBox(p.image2, p.name, p.placeholder + ' — FOTO 2 / DETALLE')}
+      ${mediaBox(galleryImages[0], p.name, p.placeholder + ' — FOTO 1')}
+      ${galleryRestHtml}
     </div>
     <div class="product-info-panel">
       <a href="#" class="back" data-action="goShop">← Tienda</a>
@@ -882,14 +900,7 @@ function renderProduct() {
       <span class="product-origin">Diseñado y producido en Uruguay</span>
       ${buyable ? `
       <div class="buy-box">
-        <div class="field-group">
-          <span class="field-label">Color</span>
-          <div class="color-swatches">
-            <span style="background:#1a1a1a;border-color:var(--fg)"></span>
-            <span style="background:#3a3a3a"></span>
-            <span style="background:${accent()}"></span>
-          </div>
-        </div>
+        ${colorsHtml}
         ${sizesHtml}
         <div class="field-group">
           <span class="field-label">Cantidad</span>
@@ -1422,6 +1433,14 @@ function updateSizeButtons() {
   document.querySelectorAll('#size-grid .size-btn').forEach(btn => {
     btn.classList.toggle('is-selected', btn.getAttribute('data-size') === state.selSize);
   });
+  const descEl = document.getElementById('size-desc');
+  if (descEl) {
+    const all = allProducts();
+    const raw = all[state.prodIdx] || all[0];
+    const sizes = (raw && raw.sizes) || [];
+    const sel = sizes.find(sz => sz.name === state.selSize);
+    descEl.textContent = sel && sel.description ? sel.name + ' — ' + sel.description : '';
+  }
 }
 function updateQty() {
   const el = document.getElementById('qty-value');
