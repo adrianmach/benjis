@@ -367,7 +367,7 @@ button{font:inherit}
 
 <header id="header-mobile" class="header header-mobile">
   <button class="hamburger-btn" data-action="toggleMenu" aria-label="Abrir menú">☰</button>
-  <button class="logo-btn" data-action="goHome"><img src="assets/logo-wordmark.png" alt="Benji$"></button>
+  <button class="logo-btn" data-action="goHome"><img src="assets/logo-wordmark.png" alt="Benji$" loading="lazy"></button>
   <a href="#" class="bag-link" data-action="openCart">BOLSA (<span class="cart-count">0</span>)</a>
 </header>
 <div id="mobile-menu-overlay" class="mobile-menu-overlay" data-action="closeMenu"></div>
@@ -384,7 +384,7 @@ button{font:inherit}
 </nav>
 
 <header id="header-desktop" class="header header-desktop">
-  <button class="logo-btn" data-action="goHome"><img src="assets/logo-wordmark.png" alt="Benji$"></button>
+  <button class="logo-btn" data-action="goHome"><img src="assets/logo-wordmark.png" alt="Benji$" loading="lazy"></button>
   <nav class="nav-desktop">
     <a href="#" data-action="goShop" data-nav="shop">Tienda</a>
     <a href="#" data-action="goArchive" data-nav="archive">Archivos</a>
@@ -402,7 +402,7 @@ button{font:inherit}
 
 <footer class="site-footer">
   <div class="footer-grid">
-    <img src="assets/logo-b.png" alt="B">
+    <img src="assets/logo-b.png" alt="B" loading="lazy">
     <div class="footer-col">
       <span class="head">Tienda</span>
       <a href="#" data-action="goShop">Tienda</a>
@@ -557,7 +557,7 @@ function goTo(page, extra) {
 /* ==================== media box helper ==================== */
 function mediaBox(url, alt, placeholder, extraAttrs) {
   extraAttrs = extraAttrs || '';
-  if (url) return `<div class="media-box" ${extraAttrs}><img src="${esc(url)}" alt="${esc(alt)}"></div>`;
+  if (url) return `<div class="media-box" ${extraAttrs}><img src="${esc(url)}" alt="${esc(alt)}" loading="lazy"></div>`;
   return `<div class="media-box" ${extraAttrs}><span class="placeholder-text">[ ${esc(placeholder)} ]</span></div>`;
 }
 
@@ -675,7 +675,7 @@ function renderHome() {
   const dropCards = featured.map(p => `
     <button class="product-card" data-action="openProduct" data-idx="${p.idx}">
       ${p.image1
-        ? `<div class="media-box"><img src="${esc(p.image1)}" alt="${esc(p.name)}">${p.tag ? `<span class="card-tag">${esc(p.tag)}</span>` : ''}</div>`
+        ? `<div class="media-box"><img src="${esc(p.image1)}" alt="${esc(p.name)}" loading="lazy">${p.tag ? `<span class="card-tag">${esc(p.tag)}</span>` : ''}</div>`
         : `<div class="media-box"><span class="placeholder-text">[ ${esc(p.placeholder)} ]</span>${p.tag ? `<span class="card-tag">${esc(p.tag)}</span>` : ''}</div>`}
       <div class="card-info"><span>${esc(p.name)}</span><span>${esc(p.price)}</span></div>
     </button>
@@ -686,10 +686,10 @@ function renderHome() {
   return `
     <section class="hero-section">
       <div class="hero-sticky">
-        <div class="hero-photo hero-photo-0" id="hero-f0"><img src="assets/hero-modelo1.jpg" alt=""></div>
-        <div class="hero-photo hero-photo-1" id="hero-f1"><img src="assets/hero-flatlay.jpg" alt=""></div>
-        <div class="hero-photo hero-photo-2" id="hero-f2"><img src="assets/hero-modelo2.jpg" alt=""></div>
-        <div class="hero-photo hero-photo-3" id="hero-f3"><img src="assets/hero-modelo3.png" alt=""></div>
+        <div class="hero-photo hero-photo-0" id="hero-f0"><img src="assets/hero-modelo1.webp" alt="" width="1200" height="1600"></div>
+        <div class="hero-photo hero-photo-1" id="hero-f1"><img src="assets/hero-flatlay.webp" alt="" width="1200" height="1600"></div>
+        <div class="hero-photo hero-photo-2" id="hero-f2"><img src="assets/hero-modelo2.webp" alt="" width="1200" height="1600"></div>
+        <div class="hero-photo hero-photo-3" id="hero-f3"><img src="assets/hero-modelo3.webp" alt="" width="1086" height="1448"></div>
         <div class="hero-letters">
           <div class="hero-letter hero-letter-0" id="hero-s0"><img src="assets/logo-wordmark.png" alt=""></div>
           <div class="hero-letter hero-letter-1" id="hero-s1"><img src="assets/logo-wordmark.png" alt=""></div>
@@ -712,7 +712,7 @@ function renderHome() {
       <div class="drop-grid" id="drop-grid">${dropCards}</div>
     </section>
 
-    <img class="gallery-fixed-img" id="gallery-fixed-img" src="${esc(settingsVal('gallery_image_url', 'assets/hero-modelo1.jpg'))}" alt="">
+    <img class="gallery-fixed-img" id="gallery-fixed-img" src="${esc(settingsVal('gallery_image_url', 'assets/hero-modelo1.webp'))}" alt="" loading="lazy">
     <div class="gallery-spacer">
       <div class="gallery-scrim"></div>
       <div class="gallery-text">
@@ -787,7 +787,7 @@ function shopItemHtml(p, i, sel, all) {
   const tagBorder = highlight ? accent() : 'var(--line2)';
   return `
     <div class="carousel-item" data-action="pickCarouselItem" data-i="${i}" style="height:${h};width:${w};opacity:${o}">
-      ${d.image1 ? `<img src="${esc(d.image1)}" alt="${esc(d.name)}">` : `<span class="placeholder-text">[ ${esc(d.placeholder)} ]</span>`}
+      ${d.image1 ? `<img src="${esc(d.image1)}" alt="${esc(d.name)}" loading="lazy">` : `<span class="placeholder-text">[ ${esc(d.placeholder)} ]</span>`}
       ${d.tag ? `<span class="card-tag" style="background:${tagBg};color:${tagColor};border:1px solid ${tagBorder}">${esc(d.tag)}</span>` : ''}
     </div>
   `;
@@ -931,7 +931,7 @@ function renderCustom() {
     <div class="copy">
       <h1>${esc(settingsVal('custom_title_1', '¿Tenés'))}<br>${esc(settingsVal('custom_title_2', 'una idea?'))}</h1>
       <p>${esc(settingsVal('custom_paragraph', 'Trabajamos prendas y piezas personalizadas: buzos, balaclavas, riñoneras y lo que se te ocurra. Contanos tu idea y te respondemos con una propuesta.'))}</p>
-      ${imgUrl ? `<div class="custom-shot"><img src="${esc(imgUrl)}" alt=""></div>` : `<div class="custom-shot"><span class="placeholder-text">[ FOTO PROCESO / TALLER ]</span></div>`}
+      ${imgUrl ? `<div class="custom-shot"><img src="${esc(imgUrl)}" alt="" loading="lazy"></div>` : `<div class="custom-shot"><span class="placeholder-text">[ FOTO PROCESO / TALLER ]</span></div>`}
     </div>
     <form class="form-col" id="custom-form">
       ${fieldsHtml}
@@ -1149,11 +1149,11 @@ function renderAbout() {
   const sobremiImg = settingsVal('about_sobremi_image_url', '');
   return `
     <div class="about-hero">
-      <img src="assets/logo-wordmark.png" alt="Benji$">
+      <img src="assets/logo-wordmark.png" alt="Benji$" loading="lazy">
       <p>${esc(settingsVal('about_subtitle', 'Marca independiente hecha en Montevideo'))}</p>
     </div>
     <div class="about-row">
-      ${procesoImg ? `<div class="media-box"><img src="${esc(procesoImg)}" alt=""></div>` : `<div class="media-box"><span class="placeholder-text">[ FOTO PROCESO ]</span></div>`}
+      ${procesoImg ? `<div class="media-box"><img src="${esc(procesoImg)}" alt="" loading="lazy"></div>` : `<div class="media-box"><span class="placeholder-text">[ FOTO PROCESO ]</span></div>`}
       <div class="copy">
         <h2>${esc(settingsVal('about_proceso_title', 'Proceso'))}</h2>
         <p>${esc(settingsVal('about_proceso_paragraph', 'Cada pieza se hace a mano, en tandas chicas. [ Texto de marca — editable desde el CMS ]'))}</p>
@@ -1165,10 +1165,10 @@ function renderAbout() {
         <p>${esc(settingsVal('about_materiales_paragraph', 'Las piezas únicas nacen de materiales que ya tuvieron una vida. Por eso son 1/1. [ Editable desde el CMS ]'))}</p>
         <a href="#" data-action="goCustom">${esc(settingsVal('about_materiales_link_text', 'Pedí tu custom →'))}</a>
       </div>
-      ${materialesImg ? `<div class="media-box"><img src="${esc(materialesImg)}" alt=""></div>` : `<div class="media-box"><span class="placeholder-text">[ FOTO MATERIALES ]</span></div>`}
+      ${materialesImg ? `<div class="media-box"><img src="${esc(materialesImg)}" alt="" loading="lazy"></div>` : `<div class="media-box"><span class="placeholder-text">[ FOTO MATERIALES ]</span></div>`}
     </div>
     <div class="about-row">
-      ${sobremiImg ? `<div class="media-box"><img src="${esc(sobremiImg)}" alt=""></div>` : `<div class="media-box"><span class="placeholder-text">[ FOTO SOBRE MÍ ]</span></div>`}
+      ${sobremiImg ? `<div class="media-box"><img src="${esc(sobremiImg)}" alt="" loading="lazy"></div>` : `<div class="media-box"><span class="placeholder-text">[ FOTO SOBRE MÍ ]</span></div>`}
       <div class="copy">
         <h2>${esc(settingsVal('about_sobremi_title', 'Sobre mí'))}</h2>
         <p>${esc(settingsVal('about_sobremi_paragraph', 'Contá acá quién está detrás de Benji$: tu historia, por qué empezaste, qué te inspira. [ Editable desde el CMS ]'))}</p>
@@ -1183,7 +1183,7 @@ function renderArchive() {
   const items = archives.map((a, i) => `
     <button class="archive-item" data-action="openArchive" data-idx="${i}" style="grid-column:${a.wide ? (isMobile() ? 'auto' : 'span 2') : 'auto'}">
       <div class="cover">
-        ${a.cover ? `<img src="${esc(a.cover)}" alt="${esc(a.title)}">` : `<span class="placeholder-text">[ COVER ${esc(a.title)} ]</span>`}
+        ${a.cover ? `<img src="${esc(a.cover)}" alt="${esc(a.title)}" loading="lazy">` : `<span class="placeholder-text">[ COVER ${esc(a.title)} ]</span>`}
       </div>
       <div class="scrim"></div>
       <div class="caption">
@@ -1226,7 +1226,7 @@ function renderArchiveDetail() {
     const url = typeof p === 'string' ? null : p.url;
     return `
       <div class="archive-photo" style="grid-column:${l.span};${l.row ? 'grid-row:' + l.row + ';' : ''}aspect-ratio:${l.ratio}">
-        ${url ? `<img src="${esc(url)}" alt="${esc(label)}">` : `<span class="placeholder-text">[ ${esc(label)} ]</span>`}
+        ${url ? `<img src="${esc(url)}" alt="${esc(label)}" loading="lazy">` : `<span class="placeholder-text">[ ${esc(label)} ]</span>`}
       </div>
     `;
   }).join('');
@@ -1485,7 +1485,7 @@ function refreshHomeCms() {
   if (dropGrid) dropGrid.innerHTML = featured.map(p => `
     <button class="product-card" data-action="openProduct" data-idx="${p.idx}">
       ${p.image1
-        ? `<div class="media-box"><img src="${esc(p.image1)}" alt="${esc(p.name)}">${p.tag ? `<span class="card-tag">${esc(p.tag)}</span>` : ''}</div>`
+        ? `<div class="media-box"><img src="${esc(p.image1)}" alt="${esc(p.name)}" loading="lazy">${p.tag ? `<span class="card-tag">${esc(p.tag)}</span>` : ''}</div>`
         : `<div class="media-box"><span class="placeholder-text">[ ${esc(p.placeholder)} ]</span>${p.tag ? `<span class="card-tag">${esc(p.tag)}</span>` : ''}</div>`}
       <div class="card-info"><span>${esc(p.name)}</span><span>${esc(p.price)}</span></div>
     </button>
@@ -1493,7 +1493,7 @@ function refreshHomeCms() {
   const unicosGrid = document.getElementById('unicos-grid');
   if (unicosGrid) unicosGrid.innerHTML = unicos.map(p => mediaBox(p.image1, p.name, p.placeholder)).join('');
   const galleryImg = document.getElementById('gallery-fixed-img');
-  if (galleryImg) galleryImg.src = settingsVal('gallery_image_url', 'assets/hero-modelo1.jpg');
+  if (galleryImg) galleryImg.src = settingsVal('gallery_image_url', 'assets/hero-modelo1.webp');
   const galleryBrand = document.getElementById('gallery-brand');
   if (galleryBrand) galleryBrand.textContent = settingsVal('gallery_brand_text', 'Benji$');
   const gallerySub = document.getElementById('gallery-sub');

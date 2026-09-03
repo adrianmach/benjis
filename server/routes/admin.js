@@ -6,7 +6,8 @@ import { Router } from 'express';
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
-import { supabase, uploadImage, deleteImageByUrl } from '../supabase.js';
+import { supabase, uploadImage, uploadProductImage, deleteImageByUrl } from '../supabase.js';
+import { optimizeImage } from '../lib/image.js';
 import { heroUpload, imageUpload, runUpload, ROOT } from '../lib/upload.js';
 import { SETTINGS_KEYS, BOOLEAN_SETTINGS } from '../lib/settings.js';
 
@@ -53,29 +54,29 @@ router.put('/settings', ah(async (req, res) => {
 // ---------------------------------------------- hero / gallery (fixed slots)
 
 const HERO_SLOTS = {
-  1: { file: 'hero-modelo1.jpg', mime: 'image/jpeg', label: 'Hero — modelo 1 / Galería 1' },
-  2: { file: 'hero-flatlay.jpg', mime: 'image/jpeg', label: 'Hero — flatlay' },
-  3: { file: 'hero-modelo2.jpg', mime: 'image/jpeg', label: 'Hero — modelo 2 / Galería 2' },
-  4: { file: 'hero-modelo3.png', mime: 'image/png', label: 'Hero — modelo 3 / Galería 3' }
+  1: { file: 'hero-modelo1.webp', label: 'Hero — modelo 1 / Galería 1' },
+  2: { file: 'hero-flatlay.webp', label: 'Hero — flatlay' },
+  3: { file: 'hero-modelo2.webp', label: 'Hero — modelo 2 / Galería 2' },
+  4: { file: 'hero-modelo3.webp', label: 'Hero — modelo 3 / Galería 3' }
 };
 
 router.get('/hero-slots', (req, res) => {
   const out = Object.entries(HERO_SLOTS).map(([slot, meta]) => ({
-    slot: Number(slot), label: meta.label, url: `/assets/${meta.file}`, format: meta.mime === 'image/png' ? 'PNG' : 'JPG'
+    slot: Number(slot), label: meta.label, url: `/assets/${meta.file}`, format: 'WEBP'
   }));
   res.json(out);
 });
 
+// Cualquier formato que suba el admin se convierte a WebP acá mismo (no hace
+// falta que coincida con el original) antes de sobreescribir el archivo fijo
+// en assets/ que hardcodea index.html.
 router.post('/media/hero/:slot', ah(async (req, res) => {
   const slot = HERO_SLOTS[req.params.slot];
   if (!slot) return res.status(400).json({ error: 'Slot inválido.' });
   if (!(await runUpload(heroUpload, req, res))) return;
   if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna imagen.' });
-  if (req.file.mimetype !== slot.mime) {
-    const wanted = slot.mime === 'image/png' ? 'PNG' : 'JPG';
-    return res.status(400).json({ error: `Esta imagen debe subirse como ${wanted} (mismo formato que el archivo original) para no romper el sitio.` });
-  }
-  fs.writeFileSync(path.join(ROOT, 'assets', slot.file), req.file.buffer);
+  const optimized = await optimizeImage(req.file.buffer);
+  fs.writeFileSync(path.join(ROOT, 'assets', slot.file), optimized);
   res.json({ ok: true, url: `/assets/${slot.file}?v=${Date.now()}` });
 }));
 
@@ -113,7 +114,7 @@ function serializeProduct(p) {
     unique: !!p.unique_piece, badge: p.badge || '', sizes: p.sizes || [],
     description: p.description || '', materials: p.materials || '', shippingReturns: p.shipping_returns || '',
     featured: !!p.featured, onSale: !!p.on_sale, salePrice: p.sale_price, sortOrder: p.sort_order,
-    images: (p.images || []).map(img => ({ id: img.id, url: img.url }))
+    images: (p.images || []).map(img => ({ id: img.id, url: img.url, thumbUrl: img.thumbUrl || null }))
   };
 }
 
@@ -172,7 +173,7 @@ router.delete('/products/:id', ah(async (req, res) => {
   if (!existing) return res.status(404).json({ error: 'Producto no encontrado.' });
   const { error } = await supabase.from('benjis_products').delete().eq('id', req.params.id);
   if (error) throw error;
-  await Promise.all((existing.images || []).map(img => deleteImageByUrl(img.url)));
+  await Promise.all((existing.images || []).flatMap(img => [deleteImageByUrl(img.url), deleteImageByUrl(img.thumbUrl)]));
   res.json({ ok: true });
 }));
 
@@ -190,8 +191,8 @@ router.post('/products/:id/images', ah(async (req, res) => {
   if (!(await runUpload(imageUpload, req, res))) return;
   if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna imagen.' });
 
-  const url = await uploadImage('products', req.file);
-  const image = { id: crypto.randomUUID(), url };
+  const { url, thumbUrl } = await uploadProductImage(req.file);
+  const image = { id: crypto.randomUUID(), url, thumbUrl };
   const { error } = await supabase.from('benjis_products').update({ images: [...(product.images || []), image] }).eq('id', req.params.id);
   if (error) throw error;
   res.status(201).json(image);
@@ -204,7 +205,7 @@ router.delete('/products/:id/images/:imageId', ah(async (req, res) => {
   if (!product || !img) return res.status(404).json({ error: 'Imagen no encontrada.' });
   const { error } = await supabase.from('benjis_products').update({ images: product.images.filter(i => i.id !== req.params.imageId) }).eq('id', req.params.id);
   if (error) throw error;
-  await deleteImageByUrl(img.url);
+  await Promise.all([deleteImageByUrl(img.url), deleteImageByUrl(img.thumbUrl)]);
   res.json({ ok: true });
 }));
 

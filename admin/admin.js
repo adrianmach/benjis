@@ -235,7 +235,7 @@ async function renderBanner(main) {
 function heroSlotWidget(slot) {
   const wrap = el('div', { class: 'hero-slot' });
   wrap.appendChild(el('div', { class: 'hero-slot-label' }, [slot.label]));
-  wrap.appendChild(el('div', { class: 'hero-slot-format' }, ['Formato requerido: ' + slot.format]));
+  wrap.appendChild(el('div', { class: 'hero-slot-format' }, ['Se optimiza y convierte automáticamente a ' + slot.format]));
   const preview = el('div', { class: 'hero-slot-preview' }, [el('img', { src: slot.url })]);
   wrap.appendChild(preview);
   const status = el('div', { class: 'status-msg' });
@@ -275,7 +275,7 @@ async function renderGallery(main) {
   main.appendChild(el('h2', {}, ['Galería full-bleed']));
   main.appendChild(el('p', { class: 'section-hint' }, ['Sección de Home con una imagen fija de fondo a pantalla completa.']));
   const settings = await api.getSettings();
-  main.appendChild(imageField('Imagen de fondo', settings.gallery_image_url || '/assets/hero-modelo1.jpg', file => api.uploadSingle('gallery', file)));
+  main.appendChild(imageField('Imagen de fondo', settings.gallery_image_url || '/assets/hero-modelo1.webp', file => api.uploadSingle('gallery', file)));
   main.appendChild(el('hr', { class: 'divider' }));
   buildSettingsForm(main, settings, [
     { key: 'gallery_brand_text', label: 'Texto de marca superpuesto' },
@@ -518,7 +518,7 @@ function productEditForm(p, categories, removeLocal, refreshAll) {
   function renderThumbs() {
     thumbRow.innerHTML = '';
     images.forEach((img, idx) => {
-      const t = el('div', { class: 'thumb' }, [el('img', { src: img.url })]);
+      const t = el('div', { class: 'thumb' }, [el('img', { src: img.thumbUrl || img.url })]);
       const rm = el('button', { class: 'remove-btn' }, ['✕']);
       rm.addEventListener('click', async () => {
         await api.deleteProductImage(p.id, img.id);
