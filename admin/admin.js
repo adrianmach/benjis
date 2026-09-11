@@ -66,7 +66,7 @@ const api = {
 
   getCategories: () => apiFetch('/api/admin/categories'),
   createCategory: (name) => apiFetch('/api/admin/categories', { method: 'POST', body: { name } }),
-  updateCategory: (id, name) => apiFetch('/api/admin/categories/' + id, { method: 'PUT', body: { name } }),
+  updateCategory: (id, patch) => apiFetch('/api/admin/categories/' + id, { method: 'PUT', body: patch }),
   deleteCategory: (id) => apiFetch('/api/admin/categories/' + id, { method: 'DELETE' }),
   reorderCategories: (order) => apiFetch('/api/admin/categories/reorder', { method: 'POST', body: { order } }),
 
@@ -400,11 +400,24 @@ function categoryItem(c, removeLocal) {
   const wrap = el('div', {});
   const input = el('input', { type: 'text', style: 'width:100%;margin-bottom:6px' }); input.value = c.name;
   wrap.appendChild(input);
+
+  let visible = c.visible !== false;
+  const visWrap = el('div', { class: 'toggle-row' });
+  const visSw = el('div', { class: 'switch' + (visible ? ' on' : '') });
+  visSw.addEventListener('click', async () => {
+    const next = !visible;
+    visSw.className = 'switch' + (next ? ' on' : '');
+    try { await api.updateCategory(c.id, { visible: next }); visible = next; }
+    catch (e) { alert(e.message); visSw.className = 'switch' + (visible ? ' on' : ''); }
+  });
+  visWrap.appendChild(visSw); visWrap.appendChild(el('label', {}, ['Visible en la web']));
+  wrap.appendChild(visWrap);
+
   const row = el('div', { class: 'actions-row' });
   const saveBtn = el('button', { class: 'btn btn-sm' }, ['Guardar']);
   saveBtn.addEventListener('click', async () => {
     try {
-      await api.updateCategory(c.id, input.value.trim());
+      await api.updateCategory(c.id, { name: input.value.trim() });
       saveBtn.textContent = 'Guardado ✓'; setTimeout(() => { saveBtn.textContent = 'Guardar'; }, 1200);
     } catch (e) { alert(e.message); }
   });
@@ -421,7 +434,7 @@ function categoryItem(c, removeLocal) {
 async function renderCategories(main) {
   main.innerHTML = '';
   main.appendChild(el('h2', {}, ['Categorías del Shop']));
-  main.appendChild(el('p', { class: 'section-hint' }, ['Lista reordenable de categorías reales de producto. "ALL" y "ÚNICOS" son filtros automáticos y no se editan acá. Deben coincidir con la categoría asignada a cada producto.']));
+  main.appendChild(el('p', { class: 'section-hint' }, ['Lista reordenable de categorías reales de producto. "ALL" y "ÚNICOS" son filtros automáticos y no se editan acá. Deben coincidir con la categoría asignada a cada producto. Una categoría oculta desaparece del filtro del shop, y los productos que la usan tampoco se muestran (siguen existiendo en la base).']));
   const categories = await api.getCategories();
   main.appendChild(reorderableList(categories, {
     renderItem: categoryItem,
@@ -736,12 +749,28 @@ function archiveItem(a, removeLocal, refreshAll) {
     el('div', { class: 'list-card-title' }, [a.title + (a.wide ? ' (ancho)' : '')]),
     el('div', { class: 'list-card-sub' }, [a.credit || 'sin crédito'])
   ]));
+
+  const right = el('div', { style: 'display:flex;align-items:center;gap:14px' });
+  let visible = a.visible !== false;
+  const visWrap = el('div', { class: 'toggle-row', style: 'margin:0', title: 'Visible en /archivos' });
+  const visSw = el('div', { class: 'switch' + (visible ? ' on' : '') });
+  visSw.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const next = !visible;
+    visSw.className = 'switch' + (next ? ' on' : '');
+    try { await api.updateArchive(a.id, { visible: next }); visible = next; }
+    catch (err) { alert(err.message); visSw.className = 'switch' + (visible ? ' on' : ''); }
+  });
+  visWrap.appendChild(visSw); visWrap.appendChild(el('label', {}, ['Visible']));
+  right.appendChild(visWrap);
+
   const toggleBtn = el('button', { class: 'btn btn-sm' }, [expandedArchives.has(a.id) ? 'Cerrar' : 'Editar']);
   toggleBtn.addEventListener('click', () => {
     if (expandedArchives.has(a.id)) expandedArchives.delete(a.id); else expandedArchives.add(a.id);
     refreshAll();
   });
-  summary.appendChild(toggleBtn);
+  right.appendChild(toggleBtn);
+  summary.appendChild(right);
   wrap.appendChild(summary);
   if (expandedArchives.has(a.id)) wrap.appendChild(archiveEditForm(a, removeLocal, refreshAll));
   return wrap;

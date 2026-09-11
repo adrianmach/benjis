@@ -24,7 +24,7 @@ router.get('/content', async (req, res) => {
     }
 
     const { data: categories, error: catErr } = await supabase
-      .from('benjis_categories').select('name').order('sort_order').order('id');
+      .from('benjis_categories').select('name').eq('visible', true).order('sort_order').order('id');
     if (catErr) throw catErr;
 
     res.json({ settings, categories: categories.map(c => c.name), customFields });
@@ -35,9 +35,13 @@ router.get('/content', async (req, res) => {
 
 router.get('/products', async (req, res) => {
   try {
+    const { data: hiddenCats, error: catErr } = await supabase.from('benjis_categories').select('name').eq('visible', false);
+    if (catErr) throw catErr;
+    const hiddenCatNames = new Set(hiddenCats.map(c => c.name));
+
     const { data, error } = await supabase.from('benjis_products').select('*').order('sort_order').order('id');
     if (error) throw error;
-    res.json(data.map(p => ({
+    res.json(data.filter(p => !hiddenCatNames.has(p.cat)).map(p => ({
       id: Number(p.id),
       name: p.name,
       price: p.price,
@@ -62,7 +66,7 @@ router.get('/products', async (req, res) => {
 
 router.get('/archives', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('benjis_archives').select('*').order('sort_order').order('id');
+    const { data, error } = await supabase.from('benjis_archives').select('*').eq('visible', true).order('sort_order').order('id');
     if (error) throw error;
     res.json(data.map(a => ({
       id: Number(a.id),

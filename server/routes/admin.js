@@ -248,9 +248,9 @@ router.post('/products/:id/images/reorder', ah(async (req, res) => {
 // ---------------------------------------------------------------- categories
 
 router.get('/categories', ah(async (req, res) => {
-  const { data, error } = await supabase.from('benjis_categories').select('id, name, sort_order').order('sort_order').order('id');
+  const { data, error } = await supabase.from('benjis_categories').select('id, name, sort_order, visible').order('sort_order').order('id');
   if (error) throw error;
-  res.json(data.map(c => ({ id: Number(c.id), name: c.name, sortOrder: c.sort_order })));
+  res.json(data.map(c => ({ id: Number(c.id), name: c.name, sortOrder: c.sort_order, visible: c.visible !== false })));
 }));
 
 router.post('/categories', ah(async (req, res) => {
@@ -260,16 +260,22 @@ router.post('/categories', ah(async (req, res) => {
   const sortOrder = (maxRow?.sort_order ?? -1) + 1;
   const { data, error } = await supabase.from('benjis_categories').insert({ name, sort_order: sortOrder }).select().single();
   if (error) return res.status(400).json({ error: 'Ya existe una categoría con ese nombre.' });
-  res.status(201).json({ id: Number(data.id), name: data.name, sortOrder: data.sort_order });
+  res.status(201).json({ id: Number(data.id), name: data.name, sortOrder: data.sort_order, visible: data.visible !== false });
 }));
 
 router.put('/categories/:id', ah(async (req, res) => {
-  const name = (req.body?.name || '').trim().toUpperCase();
-  if (!name) return res.status(400).json({ error: 'El nombre es obligatorio.' });
-  const { data, error } = await supabase.from('benjis_categories').update({ name }).eq('id', req.params.id).select().maybeSingle();
+  const patch = {};
+  if (req.body?.name !== undefined) {
+    const name = String(req.body.name).trim().toUpperCase();
+    if (!name) return res.status(400).json({ error: 'El nombre es obligatorio.' });
+    patch.name = name;
+  }
+  if (req.body?.visible !== undefined) patch.visible = !!req.body.visible;
+  if (!Object.keys(patch).length) return res.status(400).json({ error: 'Nada para actualizar.' });
+  const { data, error } = await supabase.from('benjis_categories').update(patch).eq('id', req.params.id).select().maybeSingle();
   if (error) return res.status(400).json({ error: 'Ya existe una categoría con ese nombre.' });
   if (!data) return res.status(404).json({ error: 'Categoría no encontrada.' });
-  res.json({ ok: true });
+  res.json({ id: Number(data.id), name: data.name, sortOrder: data.sort_order, visible: data.visible !== false });
 }));
 
 router.delete('/categories/:id', ah(async (req, res) => {
@@ -350,7 +356,7 @@ function serializeArchive(a) {
   return {
     id: Number(a.id), title: a.title, credit: a.credit, description: a.description || '',
     longText: a.long_text || '', coverImageUrl: a.cover_image_url || '', wide: !!a.wide,
-    sortOrder: a.sort_order,
+    visible: a.visible !== false, sortOrder: a.sort_order,
     photos: (a.photos || []).map(ph => ({ id: ph.id, url: ph.url, label: ph.label || '' }))
   };
 }
@@ -383,7 +389,8 @@ router.put('/archives/:id', ah(async (req, res) => {
     credit: b.credit !== undefined ? b.credit : existing.credit,
     description: b.description !== undefined ? b.description : existing.description,
     long_text: b.longText !== undefined ? b.longText : existing.long_text,
-    wide: b.wide !== undefined ? !!b.wide : existing.wide
+    wide: b.wide !== undefined ? !!b.wide : existing.wide,
+    visible: b.visible !== undefined ? !!b.visible : existing.visible
   };
   const { data, error } = await supabase.from('benjis_archives').update(patch).eq('id', req.params.id).select().single();
   if (error) throw error;
