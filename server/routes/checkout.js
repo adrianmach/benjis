@@ -58,6 +58,7 @@ checkoutApiRouter.post('/checkout', async (req, res) => {
     const shippingCost = await shippingCostFor(shippingMethod);
     total += shippingCost;
 
+    console.log('CHECKOUT DEBUG:', { token: process.env.MERCADOPAGO_ACCESS_TOKEN?.substring(0,10), isConf: isConfigured() });
     if (!isConfigured()) {
       // Se re-evalúa en cada request (no hay nada cacheado ni chequeado en
       // build.js): si esto dispara con la variable ya cargada en el dashboard
