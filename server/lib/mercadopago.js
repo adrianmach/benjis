@@ -4,14 +4,10 @@
 
 import { MercadoPagoConfig, Preference, Payment, WebhookSignatureValidator } from 'mercadopago';
 
-let client = null;
 function getClient() {
-  if (!client) {
-    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
-    if (!accessToken) throw new Error('MERCADOPAGO_ACCESS_TOKEN no configurado');
-    client = new MercadoPagoConfig({ accessToken });
-  }
-  return client;
+  const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+  if (!accessToken) throw new Error('MERCADOPAGO_ACCESS_TOKEN no configurado');
+  return new MercadoPagoConfig({ accessToken });
 }
 
 export function isConfigured() {
