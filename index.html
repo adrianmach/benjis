@@ -135,6 +135,7 @@ button{font:inherit}
 .gallery-scrim{position:absolute;inset:0;background:rgba(8,8,8,.4)}
 .gallery-text{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:16px;pointer-events:none}
 .gallery-text .brand{font-family:'Anton',sans-serif;font-size:80px;font-weight:400;text-transform:uppercase;letter-spacing:.06em;color:var(--fg);text-shadow:0 2px 30px rgba(0,0,0,.6)}
+.gallery-text .brand .dollar-fix{position:relative;top:-0.05em}
 .gallery-text .sub{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.4em;text-transform:uppercase;color:rgba(242,239,236,.5)}
 @media (max-width:768px){
   .gallery-text .brand{font-size:42px}
@@ -445,6 +446,12 @@ function esc(str) {
   d.textContent = str == null ? '' : String(str);
   return d.innerHTML;
 }
+// Anton's "$" glyph has a descender that dips below the baseline of the
+// other uppercase letters, so it visually reads as sitting lower — nudge
+// it back up to the shared baseline.
+function escBrandText(str) {
+  return esc(str).replace(/\$/g, () => '<span class="dollar-fix">$</span>');
+}
 function formatPrice(n) {
   if (n === null || n === undefined) return null;
   return '$ ' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -720,7 +727,7 @@ function renderHome() {
     <div class="gallery-spacer">
       <div class="gallery-scrim"></div>
       <div class="gallery-text">
-        <span class="brand" id="gallery-brand">${esc(settingsVal('gallery_brand_text', 'Benji$'))}</span>
+        <span class="brand" id="gallery-brand">${escBrandText(settingsVal('gallery_brand_text', 'Benji$'))}</span>
         <span class="sub" id="gallery-sub">${esc(settingsVal('gallery_subtitle_text', 'Montevideo — Uruguay'))}</span>
       </div>
     </div>
@@ -1495,7 +1502,7 @@ function refreshHomeCms() {
   const galleryImg = document.getElementById('gallery-fixed-img');
   if (galleryImg) galleryImg.src = settingsVal('gallery_image_url', 'assets/hero-modelo1.webp');
   const galleryBrand = document.getElementById('gallery-brand');
-  if (galleryBrand) galleryBrand.textContent = settingsVal('gallery_brand_text', 'Benji$');
+  if (galleryBrand) galleryBrand.innerHTML = escBrandText(settingsVal('gallery_brand_text', 'Benji$'));
   const gallerySub = document.getElementById('gallery-sub');
   if (gallerySub) gallerySub.textContent = settingsVal('gallery_subtitle_text', 'Montevideo — Uruguay');
   const ctaTitle = document.getElementById('cta-title');
