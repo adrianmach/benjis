@@ -59,6 +59,11 @@ checkoutApiRouter.post('/checkout', async (req, res) => {
     total += shippingCost;
 
     if (!isConfigured()) {
+      // Se re-evalúa en cada request (no hay nada cacheado ni chequeado en
+      // build.js): si esto dispara con la variable ya cargada en el dashboard
+      // de Railway, es porque la instancia corriendo es anterior a ese cambio
+      // y necesita un redeploy/restart para heredar el env nuevo.
+      console.error('[checkout] MERCADOPAGO_ACCESS_TOKEN vacío en este proceso (pid ' + process.pid + '). Si ya está seteada en Railway, redeployá el servicio.');
       return res.status(500).json({ error: 'MercadoPago no está configurado en el servidor (falta MERCADOPAGO_ACCESS_TOKEN).' });
     }
 
