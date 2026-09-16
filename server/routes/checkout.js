@@ -91,7 +91,7 @@ checkoutApiRouter.post('/checkout', async (req, res) => {
       }
       const pref = await createPreference({
         items: mpItems,
-        payer: { name: String(name).trim(), email: String(email).trim() },
+        payer: { name: String(name).trim(), email: String(email).trim(), phone: phone ? { number: String(phone).trim() } : undefined },
         external_reference: String(orderId),
         back_urls: {
           success: `${base}/checkout/success`,

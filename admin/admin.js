@@ -804,7 +804,7 @@ async function renderOrders(main) {
   const orders = await api.getOrders();
   if (!orders.length) { main.appendChild(el('div', { class: 'empty-note' }, ['Todavía no hay pedidos.'])); return; }
   const table = el('table', { class: 'orders' });
-  table.appendChild(el('thead', {}, [el('tr', {}, ['#', 'Fecha', 'Cliente', 'Items', 'Envío', 'Total', 'Estado'].map(h => el('th', {}, [h])))]));
+  table.appendChild(el('thead', {}, [el('tr', {}, ['#', 'Fecha', 'Cliente', 'Items', 'Envío', 'Total', 'Estado', 'Pago (MercadoPago)'].map(h => el('th', {}, [h])))]));
   const tbody = el('tbody');
   orders.forEach(o => {
     const itemsText = o.items.map(it => it.name + (it.size ? ' (' + it.size + ')' : '') + ' x' + it.qty).join(', ');
@@ -824,7 +824,8 @@ async function renderOrders(main) {
       el('td', {}, [itemsText || '—']),
       el('td', {}, [shippingText]),
       el('td', {}, ['$ ' + formatThousands(o.total)]),
-      el('td', {}, [statusSelect])
+      el('td', {}, [statusSelect]),
+      el('td', {}, [o.mpPaymentId ? el('div', {}, [el('div', {}, ['ID: ' + o.mpPaymentId])]) : el('span', { class: 'list-card-sub' }, ['—'])])
     ]));
   });
   table.appendChild(tbody);

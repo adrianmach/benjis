@@ -1149,6 +1149,9 @@ function renderOrderStatus() {
     <h1>${esc(title)}</h1>
     <p>${esc(text)}</p>
     ${state.orderRef ? `<span class="order-ref">Pedido #${esc(state.orderRef)}</span>` : ''}
+    ${state.orderStatus === 'failure' && state.cart.length
+      ? `<a href="#" class="btn-solid" style="background:${accent()}" data-action="goCheckout">Reintentar pago →</a>`
+      : ''}
     <a href="#" class="btn-outline" data-action="goHome">Volver al inicio</a>
   `;
 }
