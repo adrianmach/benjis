@@ -129,6 +129,8 @@ checkoutApiRouter.post('/mercadopago/webhook', async (req, res) => {
         console.warn('[webhook] Firma inválida:', sigErr.message);
         return res.sendStatus(401);
       }
+    } else {
+      console.warn('[webhook] MERCADOPAGO_WEBHOOK_SECRET no configurada — aceptando webhook sin verificar firma.');
     }
     const type = req.query.type || req.body?.type;
     if (type !== 'payment' || !dataId) return res.sendStatus(200);
